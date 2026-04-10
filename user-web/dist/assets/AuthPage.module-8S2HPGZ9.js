@@ -1,0 +1,1 @@
+const t="_page_1p38i_3",_="_card_1p38i_19",i="_header_1p38i_35",s="_logo_1p38i_43",o="_title_1p38i_45",c="_subtitle_1p38i_47",e="_form_1p38i_49",n="_switchText_1p38i_51",p="_switchLink_1p38i_53",h="_hint_1p38i_57",a={page:t,card:_,header:i,logo:s,title:o,subtitle:c,form:e,switchText:n,switchLink:p,hint:h};export{a as s};

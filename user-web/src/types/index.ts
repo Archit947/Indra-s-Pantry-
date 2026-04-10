@@ -4,6 +4,7 @@ export interface User {
   name: string;
   phone?: string;
   role: 'user' | 'admin';
+  is_active?: boolean;
   created_at: string;
 }
 
@@ -40,6 +41,7 @@ export interface OrderItem {
   price: number;
   quantity: number;
   image_url?: string;
+  category_name?: string;
 }
 
 export type OrderStatus =
