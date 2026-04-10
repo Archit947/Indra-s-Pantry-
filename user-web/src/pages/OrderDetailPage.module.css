@@ -1,0 +1,247 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.back {
+  font-size: 13px;
+  color: var(--orange-500);
+  text-decoration: none;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.back:hover {
+  text-decoration: underline;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--gray-800);
+  font-family: monospace;
+}
+
+.date {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+
+/* Progress tracker */
+.tracker {
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--gray-700);
+}
+
+.steps {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  cursor: default;
+}
+
+.stepDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gray-200);
+  border: 3px solid var(--gray-200);
+  margin-bottom: 8px;
+  transition: background 0.3s;
+}
+
+.step.done .stepDot {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+.step.active .stepDot {
+  background: var(--orange-500);
+  border-color: var(--orange-500);
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.2);
+}
+
+.stepLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-400);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.step.done .stepLabel,
+.step.active .stepLabel {
+  color: var(--gray-700);
+}
+
+.step.active .stepLabel {
+  color: var(--orange-500);
+}
+
+.stepDesc {
+  font-size: 10px;
+  color: var(--orange-500);
+  text-align: center;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.line {
+  height: 3px;
+  flex: 1;
+  background: var(--gray-200);
+  margin-top: 8px;
+  border-radius: 2px;
+}
+
+.line.lineDone {
+  background: #22c55e;
+}
+
+/* Items */
+.section {
+  padding: 24px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.itemImg {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.itemInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.itemName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.itemCat {
+  font-size: 11px;
+  color: var(--gray-500);
+  background: var(--gray-100);
+  padding: 1px 7px;
+  border-radius: 20px;
+  align-self: flex-start;
+}
+
+.itemRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.itemQty {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.itemPrice {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+/* Bill */
+.billRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--gray-600);
+  padding: 5px 0;
+}
+
+.billDivider {
+  height: 1px;
+  background: var(--gray-100);
+  margin: 10px 0;
+}
+
+.billTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.billTotalAmt {
+  color: var(--orange-500);
+  font-size: 20px;
+}
+
+.notes {
+  margin-top: 12px;
+  background: #fefce8;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--gray-700);
+}
+
+/* Cancelled box */
+.cancelBox {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .stepLabel {
+    font-size: 9px;
+  }
+
+  .steps {
+    gap: 0;
+  }
+}

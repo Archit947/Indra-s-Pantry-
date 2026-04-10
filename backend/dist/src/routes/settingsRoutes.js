@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_1 = require("../middleware/auth");
+const roleCheck_1 = require("../middleware/roleCheck");
+const settingsController_1 = require("../controllers/settingsController");
+const router = (0, express_1.Router)();
+router.get('/public/upi-qr', settingsController_1.getPublicUpiQrSettings);
+router.put('/upi-qr', auth_1.authenticate, roleCheck_1.requireAdmin, settingsController_1.upsertUpiQrSettings);
+exports.default = router;

@@ -1,0 +1,114 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+.breadcrumb a { color: var(--orange); }
+.breadcrumb a:hover { text-decoration: underline; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+@media (max-width: 700px) {
+  .layout { grid-template-columns: 1fr; gap: 20px; }
+}
+
+.imageWrap {
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #f1f5f9;
+}
+.image {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  display: block;
+}
+.imagePlaceholder {
+  width: 100%;
+  aspect-ratio: 4/3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80px;
+  background: linear-gradient(135deg, #fff7ed, #fef9c3);
+}
+
+.details { display: flex; flex-direction: column; gap: 14px; }
+
+.catTag {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--orange-light);
+  color: var(--orange);
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  width: fit-content;
+}
+.catTag:hover { background: var(--orange-mid); }
+
+.name        { font-size: 28px; font-weight: 800; line-height: 1.2; }
+.price       { font-size: 32px; font-weight: 800; color: var(--orange); }
+.description { font-size: 15px; color: var(--muted); line-height: 1.7; }
+
+.availabilityBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 600;
+  width: fit-content;
+}
+.avail   { background: var(--green-light); color: #15803d; }
+.unavail { background: var(--red-light);   color: #b91c1c; }
+
+.cartSection {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.qtyRow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.qtyBtn {
+  width: 40px; height: 44px;
+  background: var(--bg);
+  border: none;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.qtyBtn:hover:not(:disabled) { background: var(--orange-light); color: var(--orange); }
+.qtyBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.qtyVal {
+  min-width: 44px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 0 8px;
+}
+
+.backLink {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.backLink:hover { color: var(--orange); }

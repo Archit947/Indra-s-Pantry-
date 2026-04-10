@@ -1,0 +1,89 @@
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.subtitle {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.qrCard {
+  padding: 24px;
+  text-align: center;
+}
+
+.bigQr {
+  width: min(560px, 100%);
+  max-height: 560px;
+  object-fit: contain;
+  margin: 0 auto;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 12px;
+}
+
+.meta {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.summaryCard {
+  padding: 22px;
+  position: sticky;
+  top: calc(var(--navbar-h) + 14px);
+}
+
+.summaryTitle {
+  font-size: 15px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.amount {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 6px;
+}
+
+.itemCount {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.missingQr {
+  color: var(--muted);
+  font-size: 15px;
+  padding: 36px 12px;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryCard {
+    position: static;
+  }
+}
