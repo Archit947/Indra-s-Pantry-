@@ -1,6 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+const parseCsv = (value?: string): string[] => {
+  if (!value) return [];
+  return value.split(',').map((v) => v.trim()).filter(Boolean);
+};
+
 // Validate required environment variables at startup
 const requiredVars = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'JWT_SECRET'];
 
@@ -19,4 +24,5 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET || 'canteen-hub',
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  clientUrls: parseCsv(process.env.CLIENT_URLS),
 };

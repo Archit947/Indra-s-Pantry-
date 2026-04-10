@@ -21,6 +21,7 @@ app.use(
   cors({
     origin: [
       env.clientUrl,
+      ...env.clientUrls,
       'http://localhost:8081',   // Expo web
       'exp://localhost:8081',    // Expo Go tunnel
       'http://localhost:19006',  // Expo web (alternate)
