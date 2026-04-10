@@ -6,6 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.env = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
+const parseCsv = (value) => {
+    if (!value)
+        return [];
+    return value.split(',').map((v) => v.trim()).filter(Boolean);
+};
 // Validate required environment variables at startup
 const requiredVars = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'JWT_SECRET'];
 for (const v of requiredVars) {
@@ -22,4 +27,5 @@ exports.env = {
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
     supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET || 'canteen-hub',
     clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+    clientUrls: parseCsv(process.env.CLIENT_URLS),
 };

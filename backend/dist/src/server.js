@@ -22,6 +22,7 @@ app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)({
     origin: [
         env_1.env.clientUrl,
+        ...env_1.env.clientUrls,
         'http://localhost:8081', // Expo web
         'exp://localhost:8081', // Expo Go tunnel
         'http://localhost:19006', // Expo web (alternate)
@@ -64,7 +65,7 @@ app.use((err, _req, res, _next) => {
 });
 // ─── Start ────────────────────────────────────────────────────────────────────
 app.listen(env_1.env.port, () => {
-    console.log(`🚀 Canteen Hub API running on http://localhost:${env_1.env.port}`);
+    console.log(`🚀 Indra's Pantry API running on http://localhost:${env_1.env.port}`);
     console.log(`   Environment : ${env_1.env.nodeEnv}`);
     console.log(`   Supabase    : ${env_1.env.supabaseUrl}`);
 });

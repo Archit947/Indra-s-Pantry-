@@ -2,11 +2,11 @@
   "name": "canteen-hub-backend",
   "version": "1.0.0",
   "description": "Indra's Pantry REST API - Node.js + Express + Supabase",
-  "main": "dist/server.js",
+  "main": "dist/src/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "seed": "ts-node seed/seed.ts"
   },
   "dependencies": {

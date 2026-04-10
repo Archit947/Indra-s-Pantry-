@@ -15,9 +15,16 @@ export const sendError = (
   statusCode = 500,
   errors?: unknown
 ) => {
-  return res.status(statusCode).json({
+  const payload: { success: boolean; message: string; errors?: unknown } = {
     success: false,
     message,
-    ...(errors && { errors }),
+  };
+
+  if (typeof errors !== 'undefined') {
+    payload.errors = errors;
+  }
+
+  return res.status(statusCode).json({
+    ...payload,
   });
 };

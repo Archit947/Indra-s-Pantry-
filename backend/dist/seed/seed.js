@@ -11,7 +11,7 @@ require("../src/config/env");
 const supabase_1 = require("../src/config/supabase");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 async function seed() {
-    console.log('🌱 Starting Canteen Hub seed...\n');
+    console.log('🌱 Starting Indra\'s Pantry seed...\n');
     // ── Admin user ─────────────────────────────────────────────
     const adminHash = await bcryptjs_1.default.hash('admin123', 12);
     const { error: ae } = await supabase_1.supabase.from('users').upsert({ email: 'admin@canteenhub.com', password_hash: adminHash, name: 'Admin', role: 'admin' }, { onConflict: 'email' });
