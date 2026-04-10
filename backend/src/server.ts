@@ -58,6 +58,32 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Root info endpoints for hosted environments
+app.get('/', (_req, res) => {
+  res.json({
+    success: true,
+    message: "Indra's Pantry API is running",
+    health: '/health',
+    apiBase: '/api',
+  });
+});
+
+app.get('/api', (_req, res) => {
+  res.json({
+    success: true,
+    message: 'API base route',
+    routes: [
+      '/api/auth',
+      '/api/categories',
+      '/api/items',
+      '/api/cart',
+      '/api/orders',
+      '/api/users',
+      '/api/settings',
+    ],
+  });
+});
+
 // 404 handler
 app.use((_req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
