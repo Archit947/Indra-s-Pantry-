@@ -237,6 +237,26 @@
     gap: 12px;
   }
 
+  .tracker,
+  .section,
+  .cancelBox {
+    padding: 16px;
+  }
+
+  .steps {
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+  }
+
+  .steps::-webkit-scrollbar {
+    display: none;
+  }
+
+  .step {
+    min-width: 78px;
+  }
+
   .stepLabel {
     font-size: 9px;
   }

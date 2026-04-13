@@ -52,16 +52,6 @@ const CartPage: React.FC = () => {
           🛒 Your Cart <span style={{ fontSize: 16, color: 'var(--muted)', fontWeight: 500 }}>({cartCount} item{cartCount !== 1 ? 's' : ''})</span>
         </h1>
 
-        {/* DEBUG: show raw cart JSON to help troubleshoot empty UI */}
-        <div style={{ marginBottom: 12 }}>
-          <details>
-            <summary style={{ cursor: 'pointer', color: 'var(--gray-500)' }}>Show cart JSON (debug)</summary>
-            <pre style={{ maxHeight: 220, overflow: 'auto', background: '#f8fafc', padding: 12, borderRadius: 8 }}>
-              {JSON.stringify(cartItems, null, 2)}
-            </pre>
-          </details>
-        </div>
-
         <div className={styles.layout}>
           {/* Cart items */}
           <div className={styles.itemsList}>

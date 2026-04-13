@@ -220,4 +220,25 @@
   .summary {
     position: static;
   }
+
+  .section,
+  .summary {
+    padding: 16px;
+  }
+
+  .lineItem {
+    align-items: flex-start;
+  }
+
+  .lineAmt {
+    font-size: 14px;
+  }
+
+  .totalAmt {
+    font-size: 20px;
+  }
+
+  .paymentOption {
+    padding: 10px;
+  }
 }

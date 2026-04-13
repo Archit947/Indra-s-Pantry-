@@ -143,6 +143,43 @@
 .dropDivider { height: 1px; background: var(--border); margin: 4px 0; }
 
 @media (max-width: 600px) {
-  .links { display: none; }
+  .navbar {
+    height: auto;
+    min-height: var(--navbar-h);
+    padding: 8px 0;
+  }
+
+  .inner {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .brandName {
+    font-size: 16px;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+
+  .links {
+    order: 3;
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .link {
+    white-space: nowrap;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
   .userName { display: none; }
 }
