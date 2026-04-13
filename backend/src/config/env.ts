@@ -1,9 +1,14 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+const normalizeOrigin = (value: string): string => value.trim().replace(/\/+$/, '');
+
 const parseCsv = (value?: string): string[] => {
   if (!value) return [];
-  return value.split(',').map((v) => v.trim()).filter(Boolean);
+  return value
+    .split(',')
+    .map((v) => normalizeOrigin(v))
+    .filter(Boolean);
 };
 
 // Validate required environment variables at startup
@@ -23,6 +28,6 @@ export const env = {
   jwtSecret: process.env.JWT_SECRET!,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET || 'canteen-hub',
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  clientUrl: normalizeOrigin(process.env.CLIENT_URL || 'http://localhost:5173'),
   clientUrls: parseCsv(process.env.CLIENT_URLS),
 };

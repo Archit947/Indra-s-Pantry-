@@ -15,17 +15,34 @@ import settingsRoutes from './routes/settingsRoutes';
 
 const app = express();
 
+const allowedOrigins = new Set([
+  env.clientUrl,
+  ...env.clientUrls,
+  'http://localhost:8081',
+  'exp://localhost:8081',
+  'http://localhost:19006',
+]);
+
+const isAllowedOrigin = (origin: string): boolean => {
+  const normalized = origin.trim().replace(/\/+$/, '');
+  if (allowedOrigins.has(normalized)) return true;
+
+  // Allow Vercel preview deployments for this project family.
+  if (/^https:\/\/indra-s-pantry(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(normalized)) return true;
+
+  return false;
+};
+
 // ─── Security ────────────────────────────────────────────────────────────────
 app.use(helmet());
 app.use(
   cors({
-    origin: [
-      env.clientUrl,
-      ...env.clientUrls,
-      'http://localhost:8081',   // Expo web
-      'exp://localhost:8081',    // Expo Go tunnel
-      'http://localhost:19006',  // Expo web (alternate)
-    ],
+    origin: (origin, callback) => {
+      // Allow tools/health checks with no origin header.
+      if (!origin) return callback(null, true);
+      if (isAllowedOrigin(origin)) return callback(null, true);
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true,
   })
 );
