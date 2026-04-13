@@ -1,9 +1,49 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchOrderStats, fetchOrders, fetchItems, fetchUsers } from '../api/services';
 import { OrderStats, Order } from '../types';
 import styles from './Dashboard.module.css';
 
 const statuses = ['placed', 'accepted', 'preparing', 'ready', 'completed', 'cancelled'] as const;
+const VOICE_PREFERENCE_KEY = 'adminDashboardVoicePreference';
+const ORDER_POLL_INTERVAL_MS = 10000;
+
+type VoicePreference = 'female' | 'male';
+
+const getVoiceScore = (voice: SpeechSynthesisVoice, preference: VoicePreference): number => {
+  const text = `${voice.name} ${voice.voiceURI}`.toLowerCase();
+  const femaleHints = ['female', 'woman', 'zira', 'samantha', 'victoria', 'karen', 'moira'];
+  const maleHints = ['male', 'man', 'david', 'mark', 'daniel', 'alex', 'james'];
+
+  if (preference === 'female') {
+    if (femaleHints.some((hint) => text.includes(hint))) return 3;
+    if (maleHints.some((hint) => text.includes(hint))) return 0;
+    return 1;
+  }
+
+  if (maleHints.some((hint) => text.includes(hint))) return 3;
+  if (femaleHints.some((hint) => text.includes(hint))) return 0;
+  return 1;
+};
+
+const getPreferredVoice = (
+  availableVoices: SpeechSynthesisVoice[],
+  preference: VoicePreference
+): SpeechSynthesisVoice | null => {
+  if (availableVoices.length === 0) return null;
+
+  const englishVoices = availableVoices.filter((voice) => voice.lang.toLowerCase().startsWith('en'));
+  const candidates = englishVoices.length > 0 ? englishVoices : availableVoices;
+
+  const sorted = [...candidates].sort((a, b) => {
+    const byScore = getVoiceScore(b, preference) - getVoiceScore(a, preference);
+    if (byScore !== 0) return byScore;
+    if (a.default && !b.default) return -1;
+    if (!a.default && b.default) return 1;
+    return 0;
+  });
+
+  return sorted[0] ?? null;
+};
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<OrderStats | null>(null);
@@ -11,6 +51,34 @@ const Dashboard: React.FC = () => {
   const [itemCount, setItemCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [voicePreference, setVoicePreference] = useState<VoicePreference>(() => {
+    const stored = localStorage.getItem(VOICE_PREFERENCE_KEY);
+    return stored === 'male' ? 'male' : 'female';
+  });
+  const notifiedOrderIdsRef = useRef<Set<string>>(new Set());
+  const initializedNotificationsRef = useRef(false);
+
+  const selectedVoice = useMemo(
+    () => getPreferredVoice(voices, voicePreference),
+    [voices, voicePreference]
+  );
+
+  const speakNewOrderAlert = (customerName: string) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    const utterance = new SpeechSynthesisUtterance(
+      `${customerName} has placed the order, please check.`
+    );
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+      utterance.lang = selectedVoice.lang;
+    }
+    utterance.rate = 1;
+    utterance.pitch = voicePreference === 'female' ? 1.05 : 0.95;
+
+    window.speechSynthesis.speak(utterance);
+  };
 
   useEffect(() => {
     Promise.all([
@@ -29,6 +97,68 @@ const Dashboard: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem(VOICE_PREFERENCE_KEY, voicePreference);
+  }, [voicePreference]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    const updateVoices = () => {
+      setVoices(window.speechSynthesis.getVoices());
+    };
+
+    updateVoices();
+    window.speechSynthesis.onvoiceschanged = updateVoices;
+
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isDisposed = false;
+
+    const checkForNewPlacedOrders = async () => {
+      try {
+        const ordersRes = await fetchOrders('placed');
+        if (isDisposed) return;
+
+        const placedOrders = ordersRes.data.data;
+        const currentPlacedIds = new Set(placedOrders.map((order) => order.id));
+
+        if (!initializedNotificationsRef.current) {
+          notifiedOrderIdsRef.current = currentPlacedIds;
+          initializedNotificationsRef.current = true;
+          return;
+        }
+
+        placedOrders
+          .filter((order) => !notifiedOrderIdsRef.current.has(order.id))
+          .sort(
+            (a, b) =>
+              new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          )
+          .forEach((order) => {
+            const name = order.users?.name?.trim() || 'Someone';
+            speakNewOrderAlert(name);
+          });
+
+        notifiedOrderIdsRef.current = currentPlacedIds;
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    checkForNewPlacedOrders();
+    const intervalId = window.setInterval(checkForNewPlacedOrders, ORDER_POLL_INTERVAL_MS);
+
+    return () => {
+      isDisposed = true;
+      window.clearInterval(intervalId);
+    };
+  }, [selectedVoice, voicePreference]);
+
   if (loading)
     return (
       <div className="loading-container">
@@ -41,6 +171,20 @@ const Dashboard: React.FC = () => {
       <div style={{ marginBottom: 28 }}>
         <h1 className="page-title">Dashboard</h1>
         <p className="page-subtitle">Welcome back! Here's what's happening today.</p>
+        <div className={styles.voiceControlRow}>
+          <label htmlFor="voicePreference" className={styles.voiceControlLabel}>
+            Order Alert Voice
+          </label>
+          <select
+            id="voicePreference"
+            value={voicePreference}
+            onChange={(event) => setVoicePreference(event.target.value as VoicePreference)}
+            className={styles.voiceControlSelect}
+          >
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+          </select>
+        </div>
       </div>
 
       {/* KPI Cards */}

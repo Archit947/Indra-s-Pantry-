@@ -40,3 +40,32 @@
   text-align: center;
 }
 .statusCount { font-size: 24px; font-weight: 800; color: #1e293b; }
+
+.voiceControlRow {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.voiceControlLabel {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.voiceControlSelect {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.voiceControlSelect:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}

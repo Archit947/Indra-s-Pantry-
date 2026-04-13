@@ -47,6 +47,18 @@
   color: var(--muted);
 }
 
+.payAppsWrap {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.payAppBtn {
+  min-width: 150px;
+}
+
 .summaryCard {
   padding: 22px;
   position: sticky;
@@ -68,6 +80,12 @@
 
 .itemCount {
   margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.inlineHint {
+  margin-top: 10px;
   color: var(--muted);
   font-size: 13px;
 }

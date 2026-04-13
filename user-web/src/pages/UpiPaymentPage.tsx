@@ -9,6 +9,9 @@ interface UpiState {
   notes?: string;
 }
 
+const DEFAULT_UPI_ID = 'indrarajs@okhdfcbank';
+const DEFAULT_MERCHANT_NAME = "Indra's Pantry";
+
 const UpiPaymentPage: React.FC = () => {
   const { cartItems, cartTotal, clearCart, loading: cartLoading } = useCart();
   const navigate = useNavigate();
@@ -18,6 +21,33 @@ const UpiPaymentPage: React.FC = () => {
   const [upiQr, setUpiQr] = useState<{ qr_image_url: string; upi_id?: string; merchant_name?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
+
+  const resolvedUpiId = upiQr?.upi_id || DEFAULT_UPI_ID;
+  const resolvedMerchantName = upiQr?.merchant_name || DEFAULT_MERCHANT_NAME;
+  const upiAmount = cartTotal.toFixed(2);
+  const upiPayUrl = resolvedUpiId
+    ? `upi://pay?pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(
+        resolvedMerchantName
+      )}&am=${encodeURIComponent(upiAmount)}&cu=INR&tn=${encodeURIComponent(
+        `Order payment - ${cartItems.length} item${cartItems.length !== 1 ? 's' : ''}`
+      )}`
+    : '';
+
+  const gpayIntentUrl = upiPayUrl
+    ? `intent://pay?pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(
+        resolvedMerchantName
+      )}&am=${encodeURIComponent(upiAmount)}&cu=INR&tn=${encodeURIComponent(
+        `Order payment - ${cartItems.length} item${cartItems.length !== 1 ? 's' : ''}`
+      )}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
+    : '';
+
+  const phonePeIntentUrl = upiPayUrl
+    ? `intent://pay?pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(
+        resolvedMerchantName
+      )}&am=${encodeURIComponent(upiAmount)}&cu=INR&tn=${encodeURIComponent(
+        `Order payment - ${cartItems.length} item${cartItems.length !== 1 ? 's' : ''}`
+      )}#Intent;scheme=upi;package=com.phonepe.app;end`
+    : '';
 
   useEffect(() => {
     if (!cartLoading && cartItems.length === 0) {
@@ -71,11 +101,32 @@ const UpiPaymentPage: React.FC = () => {
             {upiQr?.qr_image_url ? (
               <>
                 <img src={upiQr.qr_image_url} alt="UPI QR" className={styles.bigQr} />
-                {upiQr.merchant_name && <div className={styles.meta}>Merchant: {upiQr.merchant_name}</div>}
-                {upiQr.upi_id && <div className={styles.meta}>UPI ID: {upiQr.upi_id}</div>}
+                <div className={styles.meta}>Merchant: {resolvedMerchantName}</div>
+                <div className={styles.meta}>UPI ID: {resolvedUpiId}</div>
+                {resolvedUpiId && (
+                  <div className={styles.payAppsWrap}>
+                    <a className={`btn btn-outline ${styles.payAppBtn}`} href={gpayIntentUrl || upiPayUrl}>
+                      Pay with GPay
+                    </a>
+                    <a className={`btn btn-outline ${styles.payAppBtn}`} href={phonePeIntentUrl || upiPayUrl}>
+                      Pay with PhonePe
+                    </a>
+                  </div>
+                )}
               </>
             ) : (
-              <div className={styles.missingQr}>UPI QR is not configured by admin yet.</div>
+              <>
+                <div className={styles.missingQr}>UPI QR is not configured by admin yet.</div>
+                <div className={styles.meta}>UPI ID: {resolvedUpiId}</div>
+                <div className={styles.payAppsWrap}>
+                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={gpayIntentUrl || upiPayUrl}>
+                    Pay with GPay
+                  </a>
+                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={phonePeIntentUrl || upiPayUrl}>
+                    Pay with PhonePe
+                  </a>
+                </div>
+              </>
             )}
           </div>
 
@@ -83,6 +134,7 @@ const UpiPaymentPage: React.FC = () => {
             <h2 className={styles.summaryTitle}>Order Total</h2>
             <div className={styles.amount}>₹{cartTotal}</div>
             <div className={styles.itemCount}>{cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</div>
+            {resolvedUpiId && <div className={styles.inlineHint}>Tap GPay/PhonePe and pay ₹{upiAmount}</div>}
 
             <button
               className="btn btn-primary btn-full btn-lg"
