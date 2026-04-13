@@ -1,6 +1,5 @@
 import './config/env'; // Must be first — loads and validates .env
 import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env';
@@ -37,17 +36,29 @@ const normalizeOrigin = (origin: string): string => origin.trim().replace(/\/+$/
 
 // ─── Security ────────────────────────────────────────────────────────────────
 app.use(helmet());
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow tools/health checks with no origin header.
-      if (!origin) return callback(null, true);
-      if (isAllowedOrigin(origin)) return callback(null, normalizeOrigin(origin));
-      return callback(new Error(`CORS blocked for origin: ${origin}`));
-    },
-    credentials: true,
-  })
-);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (origin && isAllowedOrigin(origin)) {
+    res.header('Access-Control-Allow-Origin', normalizeOrigin(origin));
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.header(
+      'Access-Control-Allow-Headers',
+      req.headers['access-control-request-headers'] || 'Content-Type, Authorization'
+    );
+    res.header('Vary', 'Origin');
+  }
+
+  if (req.method === 'OPTIONS') {
+    if (origin && !isAllowedOrigin(origin)) {
+      return res.status(403).json({ success: false, message: `CORS blocked for origin: ${origin}` });
+    }
+    return res.sendStatus(204);
+  }
+
+  return next();
+});
 
 // ─── Rate limiting ────────────────────────────────────────────────────────────
 const limiter = rateLimit({
