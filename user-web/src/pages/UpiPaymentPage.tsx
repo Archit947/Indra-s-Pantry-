@@ -9,7 +9,7 @@ interface UpiState {
   notes?: string;
 }
 
-const DEFAULT_UPI_ID = 'indrarajs@okhdfcbank';
+const DEFAULT_UPI_ID = '7507776361';
 const DEFAULT_MERCHANT_NAME = "Indra's Pantry";
 
 const UpiPaymentPage: React.FC = () => {
