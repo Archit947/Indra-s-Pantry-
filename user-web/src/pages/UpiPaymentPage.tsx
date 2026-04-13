@@ -9,8 +9,12 @@ interface UpiState {
   notes?: string;
 }
 
-const DEFAULT_UPI_ID = '7507776361';
+const DEFAULT_UPI_ID = 'indrarajs@okhdfcbank';
+const DEFAULT_CONTACT_NUMBER = '7507776361';
 const DEFAULT_MERCHANT_NAME = "Indra's Pantry";
+
+const isValidUpiVpa = (value: string): boolean =>
+  /^[a-zA-Z0-9._-]{2,256}@[a-zA-Z]{2,64}$/.test(value.trim());
 
 const UpiPaymentPage: React.FC = () => {
   const { cartItems, cartTotal, clearCart, loading: cartLoading } = useCart();
@@ -22,32 +26,20 @@ const UpiPaymentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
 
-  const resolvedUpiId = upiQr?.upi_id || DEFAULT_UPI_ID;
+  const configuredUpiId = (upiQr?.upi_id || '').trim();
+  const resolvedUpiId = isValidUpiVpa(configuredUpiId) ? configuredUpiId : DEFAULT_UPI_ID;
   const resolvedMerchantName = upiQr?.merchant_name || DEFAULT_MERCHANT_NAME;
   const upiAmount = cartTotal.toFixed(2);
-  const upiPayUrl = resolvedUpiId
-    ? `upi://pay?pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(
-        resolvedMerchantName
-      )}&am=${encodeURIComponent(upiAmount)}&cu=INR&tn=${encodeURIComponent(
-        `Order payment - ${cartItems.length} item${cartItems.length !== 1 ? 's' : ''}`
-      )}`
-    : '';
+  const upiQuery = `pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(
+    resolvedMerchantName
+  )}&am=${encodeURIComponent(upiAmount)}&cu=INR&tn=${encodeURIComponent(
+    `Order payment - ${cartItems.length} item${cartItems.length !== 1 ? 's' : ''}`
+  )}`;
+  const upiPayUrl = `upi://pay?${upiQuery}`;
 
-  const gpayIntentUrl = upiPayUrl
-    ? `intent://pay?pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(
-        resolvedMerchantName
-      )}&am=${encodeURIComponent(upiAmount)}&cu=INR&tn=${encodeURIComponent(
-        `Order payment - ${cartItems.length} item${cartItems.length !== 1 ? 's' : ''}`
-      )}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-    : '';
+  const gpayIntentUrl = `tez://upi/pay?${upiQuery}`;
 
-  const phonePeIntentUrl = upiPayUrl
-    ? `intent://pay?pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(
-        resolvedMerchantName
-      )}&am=${encodeURIComponent(upiAmount)}&cu=INR&tn=${encodeURIComponent(
-        `Order payment - ${cartItems.length} item${cartItems.length !== 1 ? 's' : ''}`
-      )}#Intent;scheme=upi;package=com.phonepe.app;end`
-    : '';
+  const phonePeIntentUrl = `phonepe://pay?${upiQuery}`;
 
   useEffect(() => {
     if (!cartLoading && cartItems.length === 0) {
@@ -103,26 +95,31 @@ const UpiPaymentPage: React.FC = () => {
                 <img src={upiQr.qr_image_url} alt="UPI QR" className={styles.bigQr} />
                 <div className={styles.meta}>Merchant: {resolvedMerchantName}</div>
                 <div className={styles.meta}>UPI ID: {resolvedUpiId}</div>
-                {resolvedUpiId && (
-                  <div className={styles.payAppsWrap}>
-                    <a className={`btn btn-outline ${styles.payAppBtn}`} href={gpayIntentUrl || upiPayUrl}>
-                      Pay with GPay
-                    </a>
-                    <a className={`btn btn-outline ${styles.payAppBtn}`} href={phonePeIntentUrl || upiPayUrl}>
-                      Pay with PhonePe
-                    </a>
+                {configuredUpiId && !isValidUpiVpa(configuredUpiId) && (
+                  <div className={styles.meta}>
+                    Configured UPI ID is invalid. Using default UPI ID for payment links.
                   </div>
                 )}
+                <div className={styles.meta}>Contact: {DEFAULT_CONTACT_NUMBER}</div>
+                <div className={styles.payAppsWrap}>
+                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={gpayIntentUrl}>
+                    Pay with GPay
+                  </a>
+                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={phonePeIntentUrl}>
+                    Pay with PhonePe
+                  </a>
+                </div>
               </>
             ) : (
               <>
                 <div className={styles.missingQr}>UPI QR is not configured by admin yet.</div>
                 <div className={styles.meta}>UPI ID: {resolvedUpiId}</div>
+                <div className={styles.meta}>Contact: {DEFAULT_CONTACT_NUMBER}</div>
                 <div className={styles.payAppsWrap}>
-                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={gpayIntentUrl || upiPayUrl}>
+                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={gpayIntentUrl}>
                     Pay with GPay
                   </a>
-                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={phonePeIntentUrl || upiPayUrl}>
+                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={phonePeIntentUrl}>
                     Pay with PhonePe
                   </a>
                 </div>
@@ -134,7 +131,7 @@ const UpiPaymentPage: React.FC = () => {
             <h2 className={styles.summaryTitle}>Order Total</h2>
             <div className={styles.amount}>₹{cartTotal}</div>
             <div className={styles.itemCount}>{cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</div>
-            {resolvedUpiId && <div className={styles.inlineHint}>Tap GPay/PhonePe and pay ₹{upiAmount}</div>}
+            <div className={styles.inlineHint}>Tap GPay/PhonePe and pay ₹{upiAmount}</div>
 
             <button
               className="btn btn-primary btn-full btn-lg"
