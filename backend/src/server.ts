@@ -14,6 +14,10 @@ import settingsRoutes from './routes/settingsRoutes';
 
 const app = express();
 
+// Render/other reverse proxies sit in front of Express.
+// Trusting proxy ensures req.ip reflects the real client IP for rate limiting.
+app.set('trust proxy', 1);
+
 const allowedOrigins = new Set([
   env.clientUrl,
   ...env.clientUrls,
@@ -63,7 +67,7 @@ app.use((req, res, next) => {
 // ─── Rate limiting ────────────────────────────────────────────────────────────
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200,
+  max: env.nodeEnv === 'production' ? 1200 : 5000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' },
