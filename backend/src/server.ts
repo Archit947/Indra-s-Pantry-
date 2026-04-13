@@ -33,6 +33,8 @@ const isAllowedOrigin = (origin: string): boolean => {
   return false;
 };
 
+const normalizeOrigin = (origin: string): string => origin.trim().replace(/\/+$/, '');
+
 // ─── Security ────────────────────────────────────────────────────────────────
 app.use(helmet());
 app.use(
@@ -40,7 +42,7 @@ app.use(
     origin: (origin, callback) => {
       // Allow tools/health checks with no origin header.
       if (!origin) return callback(null, true);
-      if (isAllowedOrigin(origin)) return callback(null, true);
+      if (isAllowedOrigin(origin)) return callback(null, normalizeOrigin(origin));
       return callback(new Error(`CORS blocked for origin: ${origin}`));
     },
     credentials: true,
