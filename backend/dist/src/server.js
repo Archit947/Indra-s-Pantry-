@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 require("./config/env"); // Must be first — loads and validates .env
 const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const env_1 = require("./config/env");
@@ -17,18 +16,42 @@ const orderRoutes_1 = __importDefault(require("./routes/orderRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const settingsRoutes_1 = __importDefault(require("./routes/settingsRoutes"));
 const app = (0, express_1.default)();
+const allowedOrigins = new Set([
+    env_1.env.clientUrl,
+    ...env_1.env.clientUrls,
+    'http://localhost:8081',
+    'exp://localhost:8081',
+    'http://localhost:19006',
+]);
+const isAllowedOrigin = (origin) => {
+    const normalized = origin.trim().replace(/\/+$/, '');
+    if (allowedOrigins.has(normalized))
+        return true;
+    // Allow Vercel preview deployments for this project family.
+    if (/^https:\/\/indra-s-pantry(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(normalized))
+        return true;
+    return false;
+};
+const normalizeOrigin = (origin) => origin.trim().replace(/\/+$/, '');
 // ─── Security ────────────────────────────────────────────────────────────────
 app.use((0, helmet_1.default)());
-app.use((0, cors_1.default)({
-    origin: [
-        env_1.env.clientUrl,
-        ...env_1.env.clientUrls,
-        'http://localhost:8081', // Expo web
-        'exp://localhost:8081', // Expo Go tunnel
-        'http://localhost:19006', // Expo web (alternate)
-    ],
-    credentials: true,
-}));
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin && isAllowedOrigin(origin)) {
+        res.header('Access-Control-Allow-Origin', normalizeOrigin(origin));
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+        res.header('Access-Control-Allow-Headers', req.headers['access-control-request-headers'] || 'Content-Type, Authorization');
+        res.header('Vary', 'Origin');
+    }
+    if (req.method === 'OPTIONS') {
+        if (origin && !isAllowedOrigin(origin)) {
+            return res.status(403).json({ success: false, message: `CORS blocked for origin: ${origin}` });
+        }
+        return res.sendStatus(204);
+    }
+    return next();
+});
 // ─── Rate limiting ────────────────────────────────────────────────────────────
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -52,6 +75,30 @@ app.use('/api/settings', settingsRoutes_1.default);
 // Health check
 app.get('/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+// Root info endpoints for hosted environments
+app.get('/', (_req, res) => {
+    res.json({
+        success: true,
+        message: "Indra's Pantry API is running",
+        health: '/health',
+        apiBase: '/api',
+    });
+});
+app.get('/api', (_req, res) => {
+    res.json({
+        success: true,
+        message: 'API base route',
+        routes: [
+            '/api/auth',
+            '/api/categories',
+            '/api/items',
+            '/api/cart',
+            '/api/orders',
+            '/api/users',
+            '/api/settings',
+        ],
+    });
 });
 // 404 handler
 app.use((_req, res) => {
