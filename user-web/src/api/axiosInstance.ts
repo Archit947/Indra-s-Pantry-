@@ -2,6 +2,10 @@ import axios from 'axios';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
 
+if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
+  console.warn('VITE_API_URL is not set in production. API calls will use same-origin /api.');
+}
+
 const api = axios.create({
   baseURL: apiBaseUrl,
   timeout: 15000,
