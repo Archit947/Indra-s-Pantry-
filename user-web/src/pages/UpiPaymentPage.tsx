@@ -30,16 +30,13 @@ const UpiPaymentPage: React.FC = () => {
   const resolvedUpiId = isValidUpiVpa(configuredUpiId) ? configuredUpiId : DEFAULT_UPI_ID;
   const resolvedMerchantName = upiQr?.merchant_name || DEFAULT_MERCHANT_NAME;
   const upiAmount = cartTotal.toFixed(2);
+  const transactionRef = `indrapantry-${Date.now()}`;
   const upiQuery = `pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(
     resolvedMerchantName
   )}&am=${encodeURIComponent(upiAmount)}&cu=INR&tn=${encodeURIComponent(
     `Order payment - ${cartItems.length} item${cartItems.length !== 1 ? 's' : ''}`
-  )}`;
+  )}&tr=${encodeURIComponent(transactionRef)}`;
   const upiPayUrl = `upi://pay?${upiQuery}`;
-
-  const gpayIntentUrl = `tez://upi/pay?${upiQuery}`;
-
-  const phonePeIntentUrl = `phonepe://pay?${upiQuery}`;
 
   useEffect(() => {
     if (!cartLoading && cartItems.length === 0) {
@@ -102,10 +99,10 @@ const UpiPaymentPage: React.FC = () => {
                 )}
                 <div className={styles.meta}>Contact: {DEFAULT_CONTACT_NUMBER}</div>
                 <div className={styles.payAppsWrap}>
-                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={gpayIntentUrl}>
+                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={upiPayUrl}>
                     Pay with GPay
                   </a>
-                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={phonePeIntentUrl}>
+                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={upiPayUrl}>
                     Pay with PhonePe
                   </a>
                 </div>
@@ -116,10 +113,10 @@ const UpiPaymentPage: React.FC = () => {
                 <div className={styles.meta}>UPI ID: {resolvedUpiId}</div>
                 <div className={styles.meta}>Contact: {DEFAULT_CONTACT_NUMBER}</div>
                 <div className={styles.payAppsWrap}>
-                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={gpayIntentUrl}>
+                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={upiPayUrl}>
                     Pay with GPay
                   </a>
-                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={phonePeIntentUrl}>
+                  <a className={`btn btn-outline ${styles.payAppBtn}`} href={upiPayUrl}>
                     Pay with PhonePe
                   </a>
                 </div>
