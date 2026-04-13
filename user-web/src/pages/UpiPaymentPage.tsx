@@ -9,7 +9,7 @@ interface UpiState {
   notes?: string;
 }
 
-const DEFAULT_UPI_ID = 'architkore72-1@okicici';
+const DEFAULT_UPI_ID = 'indrarajs@okhdfcbank';
 const DEFAULT_CONTACT_NUMBER = '7507776361';
 const DEFAULT_MERCHANT_NAME = "Indra's Pantry";
 
