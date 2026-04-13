@@ -1,6 +1,26 @@
 import axios from 'axios';
 
-const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
+const normalizeApiBaseUrl = (value?: string): string => {
+  if (!value) return '/api';
+
+  const trimmed = value.trim();
+  if (!trimmed) return '/api';
+
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    try {
+      const parsed = new URL(trimmed);
+      parsed.pathname = parsed.pathname === '/' ? '/api' : parsed.pathname;
+      return parsed.toString().replace(/\/+$/, '');
+    } catch {
+      // Fallback for malformed absolute URL strings.
+      return (trimmed + '/api').replace(/([^:]\/)\/+/, '$1').replace(/\/+$/, '');
+    }
+  }
+
+  return trimmed.replace(/\/+$/, '');
+};
+
+const apiBaseUrl = normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
 
 if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
   console.warn('VITE_API_URL is not set in production. API calls will use same-origin /api.');
