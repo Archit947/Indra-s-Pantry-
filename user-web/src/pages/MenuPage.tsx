@@ -50,6 +50,24 @@ const MenuPage: React.FC = () => {
     else setSearchParams({});
   };
 
+  const showCategoryDescription = (cat: Pick<Category, 'name' | 'description'>) => {
+    const desc = (cat.description ?? '').trim();
+    window.alert(desc ? `${cat.name}\n\n${desc}` : `${cat.name}\n\nNo description provided.`);
+  };
+
+  const handleCategorySelect = (cat: Category) => {
+    selectCategory(cat.id);
+    showCategoryDescription(cat);
+  };
+
+  const handleItemCategoryClick = (cat: { id: string; name: string; description?: string }) => {
+    const fallback = categories.find((c) => c.id === cat.id);
+    showCategoryDescription({
+      name: cat.name,
+      description: cat.description ?? fallback?.description,
+    });
+  };
+
   return (
     <div className="page-section">
       <div className="page-wrap">
@@ -81,7 +99,7 @@ const MenuPage: React.FC = () => {
             <button
               key={c.id}
               className={`${styles.catBtn} ${activeCat === c.id ? styles.catActive : ''}`}
-              onClick={() => selectCategory(c.id)}
+              onClick={() => handleCategorySelect(c)}
             >
               {c.name}
             </button>
@@ -103,7 +121,9 @@ const MenuPage: React.FC = () => {
               {items.length} item{items.length !== 1 ? 's' : ''} found
             </p>
             <div className={styles.grid}>
-              {items.map((item) => <ItemCard key={item.id} item={item} />)}
+              {items.map((item) => (
+                <ItemCard key={item.id} item={item} onCategoryClick={handleItemCategoryClick} />
+              ))}
             </div>
           </>
         )}

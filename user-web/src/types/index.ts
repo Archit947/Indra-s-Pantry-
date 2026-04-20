@@ -24,7 +24,7 @@ export interface Item {
   price: number;
   image_url?: string;
   is_available: boolean;
-  categories?: { id: string; name: string };
+  categories?: { id: string; name: string; description?: string };
 }
 
 export interface CartItem {

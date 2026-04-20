@@ -10,7 +10,7 @@ export const getItems = async (req: Request, res: Response): Promise<void> => {
 
   let query = supabase
     .from('items')
-    .select('*, categories(id, name)')
+    .select('*, categories(id, name, description)')
     .order('created_at', { ascending: false });
 
   if (!showAll) {
@@ -32,7 +32,7 @@ export const getItems = async (req: Request, res: Response): Promise<void> => {
 export const getItemById = async (req: Request, res: Response): Promise<void> => {
   const { data, error } = await supabase
     .from('items')
-    .select('*, categories(id, name)')
+    .select('*, categories(id, name, description)')
     .eq('id', req.params.id)
     .single();
 
@@ -59,7 +59,7 @@ export const createItem = async (req: Request, res: Response): Promise<void> => 
       image_url: image_url || null,
       is_available: is_available !== undefined ? Boolean(is_available) : true,
     })
-    .select('*, categories(id, name)')
+    .select('*, categories(id, name, description)')
     .single();
 
   if (error) { sendError(res, 'Failed to create item: ' + error.message, 500); return; }
@@ -82,7 +82,7 @@ export const updateItem = async (req: Request, res: Response): Promise<void> => 
     .from('items')
     .update(updates)
     .eq('id', req.params.id)
-    .select('*, categories(id, name)')
+    .select('*, categories(id, name, description)')
     .single();
 
   if (error || !data) { sendError(res, 'Failed to update item', 500); return; }

@@ -57,9 +57,12 @@
   position: absolute;
   top: 8px; right: 8px;
   background: rgba(249,115,22,0.9);
+  border: 0;
   color: #fff;
+  cursor: pointer;
   font-size: 11px;
   font-weight: 600;
+  line-height: 1.2;
   padding: 3px 9px;
   border-radius: 99px;
   backdrop-filter: blur(4px);

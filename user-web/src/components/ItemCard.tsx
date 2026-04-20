@@ -9,9 +9,10 @@ import styles from './ItemCard.module.css';
 
 interface Props {
   item: Item;
+  onCategoryClick?: (category: NonNullable<Item['categories']>) => void;
 }
 
-const ItemCard: React.FC<Props> = ({ item }) => {
+const ItemCard: React.FC<Props> = ({ item, onCategoryClick }) => {
   const { addItem } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -32,6 +33,14 @@ const ItemCard: React.FC<Props> = ({ item }) => {
     }
   };
 
+  const handleCategoryClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (item.categories && onCategoryClick) {
+      onCategoryClick(item.categories);
+    }
+  };
+
   return (
     <Link to={`/item/${item.id}`} className={styles.card}>
       {/* Image */}
@@ -45,7 +54,9 @@ const ItemCard: React.FC<Props> = ({ item }) => {
           <div className={styles.outBadge}>Out of Stock</div>
         )}
         {item.categories && (
-          <div className={styles.catBadge}>{item.categories.name}</div>
+          <button type="button" className={styles.catBadge} onClick={handleCategoryClick}>
+            {item.categories.name}
+          </button>
         )}
       </div>
 
