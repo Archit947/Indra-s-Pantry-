@@ -10,9 +10,10 @@ import styles from './ItemCard.module.css';
 interface Props {
   item: Item;
   onCategoryClick?: (category: NonNullable<Item['categories']>) => void;
+  categoryDescription?: string;
 }
 
-const ItemCard: React.FC<Props> = ({ item, onCategoryClick }) => {
+const ItemCard: React.FC<Props> = ({ item, onCategoryClick, categoryDescription }) => {
   const { addItem } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -41,6 +42,8 @@ const ItemCard: React.FC<Props> = ({ item, onCategoryClick }) => {
     }
   };
 
+  const cardDescription = (categoryDescription ?? item.description ?? '').trim();
+
   return (
     <Link to={`/item/${item.id}`} className={styles.card}>
       {/* Image */}
@@ -63,8 +66,8 @@ const ItemCard: React.FC<Props> = ({ item, onCategoryClick }) => {
       {/* Body */}
       <div className={styles.body}>
         <h3 className={styles.name}>{item.name}</h3>
-        {item.description && (
-          <p className={styles.desc}>{item.description}</p>
+        {cardDescription && (
+          <p className={styles.desc}>{cardDescription}</p>
         )}
         <div className={styles.footer}>
           <span className={styles.price}>₹{item.price}</span>

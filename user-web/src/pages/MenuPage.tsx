@@ -68,6 +68,16 @@ const MenuPage: React.FC = () => {
     });
   };
 
+  const getCategoryDescriptionForItem = (item: Item): string | undefined => {
+    const fromItemCategory = item.categories?.description?.trim();
+    if (fromItemCategory) return fromItemCategory;
+
+    const fromCategoryList = categories.find((c) => c.id === item.category_id)?.description?.trim();
+    if (fromCategoryList) return fromCategoryList;
+
+    return undefined;
+  };
+
   return (
     <div className="page-section">
       <div className="page-wrap">
@@ -122,7 +132,12 @@ const MenuPage: React.FC = () => {
             </p>
             <div className={styles.grid}>
               {items.map((item) => (
-                <ItemCard key={item.id} item={item} onCategoryClick={handleItemCategoryClick} />
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  onCategoryClick={handleItemCategoryClick}
+                  categoryDescription={getCategoryDescriptionForItem(item)}
+                />
               ))}
             </div>
           </>
