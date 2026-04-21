@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { loginAdmin } from '../api/services';
+import { fetchPublicSiteBranding, loginAdmin } from '../api/services';
 import { useAuth } from '../context/AuthContext';
 import styles from './LoginPage.module.css';
 
@@ -9,11 +9,23 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [siteName, setSiteName] = useState("Indra's Pantry");
+  const [logoUrl, setLogoUrl] = useState('');
 
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Already logged in → go to dashboard
+  useEffect(() => {
+    fetchPublicSiteBranding()
+      .then((res) => {
+        setSiteName(res.data.data.site_name || "Indra's Pantry");
+        setLogoUrl(res.data.data.logo_url || '');
+      })
+      .catch(() => {
+        // Keep defaults when settings are not yet configured.
+      });
+  }, []);
+
   if (isAuthenticated) {
     navigate('/dashboard', { replace: true });
     return null;
@@ -48,9 +60,18 @@ const LoginPage: React.FC = () => {
     <div className={styles.page}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <div className={styles.logo}>🍽️</div>
-          <h1 className={styles.title}>Indra's Pantry</h1>
-          <p className={styles.subtitle}>Admin Dashboard — Sign in to continue</p>
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt={`${siteName} logo`}
+              className={styles.logo}
+              style={{ width: 58, height: 58, objectFit: 'cover', borderRadius: 12 }}
+            />
+          ) : (
+            <div className={styles.logo}>🍽️</div>
+          )}
+          <h1 className={styles.title}>{siteName}</h1>
+          <p className={styles.subtitle}>Admin Dashboard - Sign in to continue</p>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -84,7 +105,7 @@ const LoginPage: React.FC = () => {
             className={`btn btn-primary ${styles.submitBtn}`}
             disabled={loading}
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 

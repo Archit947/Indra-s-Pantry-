@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { registerUser } from '../api/services';
+import { getPublicSiteBranding, registerUser } from '../api/services';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import styles from './AuthPage.module.css';
@@ -9,9 +9,22 @@ import styles from './AuthPage.module.css';
 const RegisterPage: React.FC = () => {
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '' });
   const [loading, setLoading] = useState(false);
-  const { login }    = useAuth();
+  const [siteName, setSiteName] = useState("Indra's Pantry");
+  const [logoUrl, setLogoUrl] = useState('');
+  const { login } = useAuth();
   const { loadCart } = useCart();
-  const navigate     = useNavigate();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    getPublicSiteBranding()
+      .then((res) => {
+        setSiteName(res.data.data.site_name || "Indra's Pantry");
+        setLogoUrl(res.data.data.logo_url || '');
+      })
+      .catch(() => {
+        // Keep defaults when branding is not configured.
+      });
+  }, []);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -30,7 +43,7 @@ const RegisterPage: React.FC = () => {
       const { user, token } = res.data.data;
       login(user, token);
       await loadCart();
-      toast.success(`Account created! Welcome, ${user.name} 🎉`);
+      toast.success(`Account created! Welcome, ${user.name}`);
       navigate('/');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Registration failed';
@@ -44,9 +57,18 @@ const RegisterPage: React.FC = () => {
     <div className={styles.page}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <div className={styles.logo}>🍽️</div>
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt={`${siteName} logo`}
+              className={styles.logo}
+              style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'cover' }}
+            />
+          ) : (
+            <div className={styles.logo}>🍽️</div>
+          )}
           <h1 className={styles.title}>Create Account</h1>
-          <p className={styles.subtitle}>Join Indra's Pantry and order your favourite food</p>
+          <p className={styles.subtitle}>Join {siteName} and order your favourite food</p>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -82,7 +104,7 @@ const RegisterPage: React.FC = () => {
             style={{ padding: '12px', fontSize: '15px', borderRadius: '10px' }}
             disabled={loading}
           >
-            {loading ? 'Creating account…' : 'Create Account'}
+            {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 

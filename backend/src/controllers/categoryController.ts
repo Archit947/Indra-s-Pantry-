@@ -43,7 +43,11 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
 
   const { data, error } = await supabase
     .from('categories')
-    .insert({ name: name.trim(), description, image_url })
+    .insert({
+      name: name.trim(),
+      description: description || null,
+      image_url: typeof image_url === 'string' && image_url.trim() ? image_url.trim() : null,
+    })
     .select()
     .single();
 
@@ -60,9 +64,11 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
 export const updateCategory = async (req: Request, res: Response): Promise<void> => {
   const { name, description, image_url, is_active } = req.body;
   const updates: Record<string, unknown> = {};
-  if (name !== undefined) updates.name = name.trim();
-  if (description !== undefined) updates.description = description;
-  if (image_url !== undefined) updates.image_url = image_url;
+  if (name !== undefined) updates.name = typeof name === 'string' ? name.trim() : name;
+  if (description !== undefined) updates.description = description || null;
+  if (image_url !== undefined) {
+    updates.image_url = typeof image_url === 'string' && image_url.trim() ? image_url.trim() : null;
+  }
   if (is_active !== undefined) updates.is_active = is_active;
 
   const { data, error } = await supabase

@@ -16,6 +16,9 @@ const orderRoutes_1 = __importDefault(require("./routes/orderRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const settingsRoutes_1 = __importDefault(require("./routes/settingsRoutes"));
 const app = (0, express_1.default)();
+// Render/other reverse proxies sit in front of Express.
+// Trusting proxy ensures req.ip reflects the real client IP for rate limiting.
+app.set('trust proxy', 1);
 const allowedOrigins = new Set([
     env_1.env.clientUrl,
     ...env_1.env.clientUrls,
@@ -55,7 +58,7 @@ app.use((req, res, next) => {
 // ─── Rate limiting ────────────────────────────────────────────────────────────
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 200,
+    max: env_1.env.nodeEnv === 'production' ? 1200 : 5000,
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, message: 'Too many requests, please try again later.' },

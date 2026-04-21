@@ -18,6 +18,13 @@
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .brandIcon { font-size: 28px; }
+.brandLogo {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,0.2);
+}
 .brandName { display: block; color: #fff; font-size: 16px; font-weight: 700; }
 .brandRole  { display: block; color: #94a3b8; font-size: 11px; margin-top: 1px; }
 

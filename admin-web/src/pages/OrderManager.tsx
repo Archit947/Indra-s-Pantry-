@@ -7,6 +7,7 @@ import styles from './OrderManager.module.css';
 const ALL_STATUSES: OrderStatus[] = [
   'placed', 'accepted', 'preparing', 'ready', 'completed', 'cancelled',
 ];
+const FINAL_STATUSES: OrderStatus[] = ['completed', 'cancelled'];
 
 const OrderManager: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -30,6 +31,11 @@ const OrderManager: React.FC = () => {
   useEffect(() => { load(); }, [filter]);
 
   const handleStatusChange = async (orderId: string, status: OrderStatus) => {
+    if (selected && FINAL_STATUSES.includes(selected.status)) {
+      toast.error('Finalized orders cannot be updated');
+      return;
+    }
+
     setUpdating(true);
     try {
       await updateOrderStatus(orderId, status);
@@ -178,13 +184,22 @@ const OrderManager: React.FC = () => {
 
               {/* Status updater */}
               <h3 style={{ fontWeight: 700, marginTop: 20, marginBottom: 10 }}>Update Status</h3>
+              {FINAL_STATUSES.includes(selected.status) && (
+                <p style={{ color: '#b91c1c', marginBottom: 10, fontSize: 13 }}>
+                  This order is finalized, so its status can no longer be changed.
+                </p>
+              )}
               <div className={styles.statusBtns}>
                 {ALL_STATUSES.map((s) => (
                   <button
                     key={s}
                     className={`btn btn-sm ${selected.status === s ? 'btn-primary' : 'btn-outline'}`}
                     onClick={() => handleStatusChange(selected.id, s)}
-                    disabled={updating || selected.status === s}
+                    disabled={
+                      updating
+                      || selected.status === s
+                      || FINAL_STATUSES.includes(selected.status)
+                    }
                     style={{ textTransform: 'capitalize' }}
                   >
                     {s}

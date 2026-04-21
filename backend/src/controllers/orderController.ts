@@ -149,6 +149,22 @@ export const updateOrderStatus = async (req: Request, res: Response): Promise<vo
     return;
   }
 
+  const { data: existingOrder, error: existingOrderError } = await supabase
+    .from('orders')
+    .select('id, status')
+    .eq('id', req.params.id)
+    .maybeSingle();
+
+  if (existingOrderError || !existingOrder) {
+    sendError(res, 'Order not found', 404);
+    return;
+  }
+
+  if (existingOrder.status === 'completed' || existingOrder.status === 'cancelled') {
+    sendError(res, 'Finalized orders cannot be updated', 400);
+    return;
+  }
+
   const { data, error } = await supabase
     .from('orders')
     .update({ status, updated_at: new Date().toISOString() })
@@ -156,6 +172,6 @@ export const updateOrderStatus = async (req: Request, res: Response): Promise<vo
     .select()
     .single();
 
-  if (error || !data) { sendError(res, 'Order not found or update failed', 404); return; }
+  if (error || !data) { sendError(res, 'Order status update failed', 500); return; }
   sendSuccess(res, data, 'Order status updated');
 };

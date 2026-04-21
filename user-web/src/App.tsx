@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
+import MobileNav from './components/MobileNav';
 
 const HomePage       = lazy(() => import('./pages/HomePage'));
 const MenuPage       = lazy(() => import('./pages/MenuPage'));
@@ -48,6 +49,7 @@ const App: React.FC = () => {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
+      <MobileNav />
     </>
   );
 };

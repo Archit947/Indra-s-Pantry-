@@ -104,6 +104,144 @@
   font-weight: 800;
   color: var(--orange);
 }
-.addBtn {
-  flex-shrink: 0;
+@media (max-width: 640px) {
+  .card {
+    flex-direction: row;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: none;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+    align-items: center;
+  }
+  .card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .imgWrap {
+    width: 100px;
+    height: 100px;
+    padding-top: 0;
+    border-radius: 12px;
+    order: 2; /* move image to the right */
+    margin-left: 12px;
+  }
+  .img {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .imgPlaceholder {
+    position: relative;
+    font-size: 32px;
+  }
+  .body {
+    padding: 0;
+    justify-content: center;
+    order: 1; /* text on the left */
+  }
+  .name {
+    white-space: normal;
+  }
+  .desc {
+    -webkit-line-clamp: 2;
+  }
+  .footer {
+    margin-top: 6px;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+  .addBtn {
+    /* Style add button absolute or smaller if needed */
+    position: absolute;
+    bottom: -15px;
+    right: 15px; /* relative to img wrap basically */
+  }
+}
+@media (max-width: 640px) {
+  .card {
+    flex-direction: row;
+    box-shadow: none;
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+    align-items: center;
+    position: relative;
+    padding: 12px;
+  }
+  .card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .imgWrap {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    padding-top: 0;
+    border-radius: 12px;
+    flex-shrink: 0;
+    order: 2; /* move image to the right */
+    margin-left: 16px;
+  }
+  .img {
+    height: 100%;
+    border-radius: 12px;
+  }
+  .imgPlaceholder {
+    border-radius: 12px;
+    font-size: 40px;
+    position: relative;
+  }
+  .body {
+    padding: 0;
+    justify-content: center;
+    order: 1; /* text on the left */
+    flex: 1;
+  }
+  .name {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .desc {
+    -webkit-line-clamp: 2;
+    margin-bottom: 8px;
+  }
+  .footer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: auto;
+  }
+  .price {
+    font-size: 16px;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  .addBtn {
+    position: absolute;
+    bottom: 2px;
+    right: 25px; 
+    z-index: 10;
+    background: #fff;
+    color: var(--green);
+    border: 1px solid #d1d5db;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-weight: 800;
+    padding: 6px 20px;
+    border-radius: 8px;
+    text-transform: uppercase;
+  }
+  .catBadge {
+    display: none;
+  }
+  .outBadge {
+    bottom: 24px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    border-radius: 0 0 12px 12px;
+  }
 }

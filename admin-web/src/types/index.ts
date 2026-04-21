@@ -75,3 +75,8 @@ export interface UpiQrSettings {
   upi_id?: string;
   merchant_name?: string;
 }
+
+export interface SiteBrandingSettings {
+  site_name: string;
+  logo_url?: string;
+}

@@ -50,22 +50,8 @@ const MenuPage: React.FC = () => {
     else setSearchParams({});
   };
 
-  const showCategoryDescription = (cat: Pick<Category, 'name' | 'description'>) => {
-    const desc = (cat.description ?? '').trim();
-    window.alert(desc ? `${cat.name}\n\n${desc}` : `${cat.name}\n\nNo description provided.`);
-  };
-
-  const handleCategorySelect = (cat: Category) => {
-    selectCategory(cat.id);
-    showCategoryDescription(cat);
-  };
-
   const handleItemCategoryClick = (cat: { id: string; name: string; description?: string }) => {
-    const fallback = categories.find((c) => c.id === cat.id);
-    showCategoryDescription({
-      name: cat.name,
-      description: cat.description ?? fallback?.description,
-    });
+    selectCategory(cat.id);
   };
 
   const getCategoryDescriptionForItem = (item: Item): string | undefined => {
@@ -109,7 +95,7 @@ const MenuPage: React.FC = () => {
             <button
               key={c.id}
               className={`${styles.catBtn} ${activeCat === c.id ? styles.catActive : ''}`}
-              onClick={() => handleCategorySelect(c)}
+              onClick={() => selectCategory(c.id)}
             >
               {c.name}
             </button>

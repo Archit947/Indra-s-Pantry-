@@ -44,7 +44,11 @@ const createCategory = async (req, res) => {
     }
     const { data, error } = await supabase_1.supabase
         .from('categories')
-        .insert({ name: name.trim(), description, image_url })
+        .insert({
+        name: name.trim(),
+        description: description || null,
+        image_url: typeof image_url === 'string' && image_url.trim() ? image_url.trim() : null,
+    })
         .select()
         .single();
     if (error) {
@@ -63,11 +67,12 @@ const updateCategory = async (req, res) => {
     const { name, description, image_url, is_active } = req.body;
     const updates = {};
     if (name !== undefined)
-        updates.name = name.trim();
+        updates.name = typeof name === 'string' ? name.trim() : name;
     if (description !== undefined)
-        updates.description = description;
-    if (image_url !== undefined)
-        updates.image_url = image_url;
+        updates.description = description || null;
+    if (image_url !== undefined) {
+        updates.image_url = typeof image_url === 'string' && image_url.trim() ? image_url.trim() : null;
+    }
     if (is_active !== undefined)
         updates.is_active = is_active;
     const { data, error } = await supabase_1.supabase

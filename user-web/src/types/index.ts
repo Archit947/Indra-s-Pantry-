@@ -63,3 +63,8 @@ export interface Order {
   created_at: string;
   updated_at: string;
 }
+
+export interface SiteBrandingSettings {
+  site_name: string;
+  logo_url?: string;
+}

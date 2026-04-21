@@ -26,17 +26,16 @@ const HomePage: React.FC = () => {
       <section className={styles.hero}>
         <div className={`page-wrap ${styles.heroInner}`}>
           <div className={styles.heroText}>
-            <span className={styles.heroPill}>🎉 Fresh &amp; Delicious Daily</span>
             <h1 className={styles.heroTitle}>
-              Order your favourite <span className={styles.highlight}>canteen food</span> in minutes
+              Get <span className={styles.highlight}>fresh food</span> anytime
             </h1>
             <p className={styles.heroSub}>
-              Browse the full menu, add to cart, and pick up hot at the counter. No queues!
+              Skip the queue. Order ahead and pick up.
             </p>
-            <div className={styles.heroCta}>
-              <Link to="/menu" className="btn btn-primary btn-lg">Explore Menu 🍛</Link>
-              <Link to="/register" className="btn btn-outline btn-lg">Create Account</Link>
-            </div>
+            <Link to="/menu" className={styles.searchBarWrap}>
+              <span>🔍</span>
+              <span>Search for dishes, snacks...</span>
+            </Link>
           </div>
           <div className={styles.heroIllustration}>🍽️</div>
         </div>
@@ -51,7 +50,15 @@ const HomePage: React.FC = () => {
               {categories.map((cat) => (
                 <Link key={cat.id} to={`/menu?category=${cat.id}`} className={styles.catChip}>
                   <div className={styles.catEmoji}>
-                    {getCatEmoji(cat.name)}
+                    {cat.image_url ? (
+                      <img
+                        src={cat.image_url}
+                        alt={cat.name}
+                        style={{ width: 36, height: 36, borderRadius: 999, objectFit: 'cover' }}
+                      />
+                    ) : (
+                      getCatEmoji(cat.name)
+                    )}
                   </div>
                   <span>{cat.name}</span>
                 </Link>

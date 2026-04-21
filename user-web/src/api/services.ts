@@ -1,5 +1,5 @@
 import api from './axiosInstance';
-import { Item, Category, Order, User } from '../types';
+import { Item, Category, Order, SiteBrandingSettings, User } from '../types';
 
 // ── Auth ──────────────────────────────────────────────────────
 export const loginUser = (email: string, password: string) =>
@@ -55,3 +55,6 @@ export const getOrderById = (id: string) =>
 // ── Public Settings ───────────────────────────────────────────
 export const getPublicUpiQrSettings = () =>
   api.get<{ data: { qr_image_url: string; upi_id?: string; merchant_name?: string } | null }>('/settings/public/upi-qr');
+
+export const getPublicSiteBranding = () =>
+  api.get<{ data: SiteBrandingSettings }>('/settings/public/branding');

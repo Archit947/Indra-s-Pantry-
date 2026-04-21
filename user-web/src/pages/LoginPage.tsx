@@ -1,20 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { loginUser } from '../api/services';
+import { getPublicSiteBranding, loginUser } from '../api/services';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import styles from './AuthPage.module.css';
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading]   = useState(false);
-  const { login }  = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [siteName, setSiteName] = useState("Indra's Pantry");
+  const [logoUrl, setLogoUrl] = useState('');
+  const { login } = useAuth();
   const { loadCart } = useCart();
-  const navigate   = useNavigate();
-  const location   = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/';
+
+  useEffect(() => {
+    getPublicSiteBranding()
+      .then((res) => {
+        setSiteName(res.data.data.site_name || "Indra's Pantry");
+        setLogoUrl(res.data.data.logo_url || '');
+      })
+      .catch(() => {
+        // Keep defaults when branding is not configured.
+      });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,9 +51,18 @@ const LoginPage: React.FC = () => {
     <div className={styles.page}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <div className={styles.logo}>🍽️</div>
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt={`${siteName} logo`}
+              className={styles.logo}
+              style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'cover' }}
+            />
+          ) : (
+            <div className={styles.logo}>🍽️</div>
+          )}
           <h1 className={styles.title}>Welcome Back!</h1>
-          <p className={styles.subtitle}>Sign in to your Indra's Pantry account</p>
+          <p className={styles.subtitle}>Sign in to your {siteName} account</p>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -77,7 +99,7 @@ const LoginPage: React.FC = () => {
             style={{ padding: '12px', fontSize: '15px', borderRadius: '10px' }}
             disabled={loading}
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 

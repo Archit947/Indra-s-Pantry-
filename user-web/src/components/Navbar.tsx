@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { getPublicSiteBranding } from '../api/services';
 import styles from './Navbar.module.css';
 
 const Navbar: React.FC = () => {
@@ -10,8 +11,9 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [siteName, setSiteName] = useState("Indra's Pantry");
+  const [logoUrl, setLogoUrl] = useState('');
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -20,6 +22,17 @@ const Navbar: React.FC = () => {
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  useEffect(() => {
+    getPublicSiteBranding()
+      .then((res) => {
+        setSiteName(res.data.data.site_name || "Indra's Pantry");
+        setLogoUrl(res.data.data.logo_url || '');
+      })
+      .catch(() => {
+        // Keep defaults when settings are not configured.
+      });
   }, []);
 
   const handleLogout = () => {
@@ -31,24 +44,24 @@ const Navbar: React.FC = () => {
   return (
     <header className={styles.navbar}>
       <div className={`page-wrap ${styles.inner}`}>
-        {/* Brand */}
         <Link to="/" className={styles.brand}>
-          <span className={styles.brandIcon}>🍽️</span>
-          <span className={styles.brandName}>Indra's Pantry</span>
+          {logoUrl ? (
+            <img src={logoUrl} alt={`${siteName} logo`} className={styles.brandLogo} />
+          ) : (
+            <span className={styles.brandIcon}>🍽️</span>
+          )}
+          <span className={styles.brandName}>{siteName}</span>
         </Link>
 
-        {/* Desktop nav links */}
         <nav className={styles.links}>
-          <NavLink to="/"      className={({ isActive }) => `${styles.link} ${isActive ? styles.activeLink : ''}`} end>Home</NavLink>
-          <NavLink to="/menu"  className={({ isActive }) => `${styles.link} ${isActive ? styles.activeLink : ''}`}>Menu</NavLink>
+          <NavLink to="/" className={({ isActive }) => `${styles.link} ${isActive ? styles.activeLink : ''}`} end>Home</NavLink>
+          <NavLink to="/menu" className={({ isActive }) => `${styles.link} ${isActive ? styles.activeLink : ''}`}>Menu</NavLink>
           {isAuthenticated && (
             <NavLink to="/orders" className={({ isActive }) => `${styles.link} ${isActive ? styles.activeLink : ''}`}>My Orders</NavLink>
           )}
         </nav>
 
-        {/* Right actions */}
         <div className={styles.actions}>
-          {/* Cart */}
           {isAuthenticated && (
             <Link to="/cart" className={styles.cartBtn}>
               <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -59,7 +72,6 @@ const Navbar: React.FC = () => {
             </Link>
           )}
 
-          {/* User dropdown / login */}
           {isAuthenticated ? (
             <div className={styles.userMenu} ref={menuRef}>
               <button className={styles.avatarBtn} onClick={() => setMenuOpen(!menuOpen)}>
@@ -87,7 +99,7 @@ const Navbar: React.FC = () => {
             </div>
           ) : (
             <div style={{ display: 'flex', gap: 8 }}>
-              <Link to="/login"    className="btn btn-outline btn-sm">Login</Link>
+              <Link to="/login" className="btn btn-outline btn-sm">Login</Link>
               <Link to="/register" className="btn btn-primary btn-sm">Sign Up</Link>
             </div>
           )}

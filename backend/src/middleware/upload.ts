@@ -26,40 +26,62 @@ export const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB cap
 });
 
+interface SupabaseUploadOptions {
+  folder: string;
+  bodyField?: string;
+}
+
+const normalizeFolder = (folder: string): string =>
+  folder
+    .trim()
+    .replace(/^\/+|\/+$/g, '')
+    .replace(/[^a-zA-Z0-9/_-]/g, '') || 'items';
+
 /**
- * After multer parses the file, upload it to Supabase Storage
- * and inject the public URL as req.body.image_url for the controller.
+ * Factory middleware:
+ * 1) uploads req.file to Supabase Storage under the provided folder
+ * 2) writes public URL into req.body[bodyField]
  */
-export const uploadToSupabase = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  if (!req.file) {
+export const createSupabaseUploadMiddleware = ({
+  folder,
+  bodyField = 'image_url',
+}: SupabaseUploadOptions) => {
+  const normalizedFolder = normalizeFolder(folder);
+
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (!req.file) {
+      next();
+      return;
+    }
+
+    const file = req.file;
+    const safeName =
+      file.originalname.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9.\-_]/g, '') || 'upload-file';
+    const filePath = `${normalizedFolder}/${Date.now()}-${safeName}`;
+
+    const { error } = await supabase.storage
+      .from(env.supabaseStorageBucket)
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false,
+      });
+
+    if (error) {
+      sendError(res, 'Image upload failed: ' + error.message, 500);
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from(env.supabaseStorageBucket)
+      .getPublicUrl(filePath);
+
+    (req.body as Record<string, unknown>)[bodyField] = data.publicUrl;
     next();
-    return;
-  }
-
-  const file = req.file;
-  const safeName = file.originalname.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9.\-_]/g, '');
-  const filePath = `items/${Date.now()}-${safeName}`;
-
-  const { error } = await supabase.storage
-    .from(env.supabaseStorageBucket)
-    .upload(filePath, file.buffer, {
-      contentType: file.mimetype,
-      upsert: false,
-    });
-
-  if (error) {
-    sendError(res, 'Image upload failed: ' + error.message, 500);
-    return;
-  }
-
-  const { data } = supabase.storage
-    .from(env.supabaseStorageBucket)
-    .getPublicUrl(filePath);
-
-  req.body.image_url = data.publicUrl;
-  next();
+  };
 };
+
+// Backward-compatible default uploader used by item routes.
+export const uploadToSupabase = createSupabaseUploadMiddleware({
+  folder: 'items',
+  bodyField: 'image_url',
+});

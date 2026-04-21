@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { getPublicUpiQrSettings, placeOrder } from '../api/services';
+import { getPublicSiteBranding, getPublicUpiQrSettings, placeOrder } from '../api/services';
 import { useCart } from '../context/CartContext';
 import styles from './UpiPaymentPage.module.css';
 
@@ -23,12 +23,13 @@ const UpiPaymentPage: React.FC = () => {
   const state = (location.state as UpiState | null) ?? null;
 
   const [upiQr, setUpiQr] = useState<{ qr_image_url: string; upi_id?: string; merchant_name?: string } | null>(null);
+  const [fallbackMerchantName, setFallbackMerchantName] = useState(DEFAULT_MERCHANT_NAME);
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
 
   const configuredUpiId = (upiQr?.upi_id || '').trim();
   const resolvedUpiId = isValidUpiVpa(configuredUpiId) ? configuredUpiId : DEFAULT_UPI_ID;
-  const resolvedMerchantName = upiQr?.merchant_name || DEFAULT_MERCHANT_NAME;
+  const resolvedMerchantName = upiQr?.merchant_name || fallbackMerchantName;
   const upiAmount = cartTotal.toFixed(2);
   const transactionRef = `indrapantry-${Date.now()}`;
   const upiQuery = `pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(
@@ -46,9 +47,15 @@ const UpiPaymentPage: React.FC = () => {
 
     if (cartLoading) return;
 
-    getPublicUpiQrSettings()
-      .then((res) => setUpiQr(res.data.data))
-      .catch(() => setUpiQr(null))
+    Promise.all([getPublicUpiQrSettings(), getPublicSiteBranding()])
+      .then(([upiRes, brandingRes]) => {
+        setUpiQr(upiRes.data.data);
+        const brandingName = brandingRes.data.data.site_name || DEFAULT_MERCHANT_NAME;
+        setFallbackMerchantName(brandingName);
+      })
+      .catch(() => {
+        setUpiQr(null);
+      })
       .finally(() => setLoading(false));
   }, [cartLoading, cartItems.length, navigate]);
 

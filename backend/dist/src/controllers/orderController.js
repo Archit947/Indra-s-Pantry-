@@ -134,6 +134,19 @@ const updateOrderStatus = async (req, res) => {
         (0, response_1.sendError)(res, `Status must be one of: ${VALID_STATUSES.join(', ')}`, 400);
         return;
     }
+    const { data: existingOrder, error: existingOrderError } = await supabase_1.supabase
+        .from('orders')
+        .select('id, status')
+        .eq('id', req.params.id)
+        .maybeSingle();
+    if (existingOrderError || !existingOrder) {
+        (0, response_1.sendError)(res, 'Order not found', 404);
+        return;
+    }
+    if (existingOrder.status === 'completed' || existingOrder.status === 'cancelled') {
+        (0, response_1.sendError)(res, 'Finalized orders cannot be updated', 400);
+        return;
+    }
     const { data, error } = await supabase_1.supabase
         .from('orders')
         .update({ status, updated_at: new Date().toISOString() })
@@ -141,7 +154,7 @@ const updateOrderStatus = async (req, res) => {
         .select()
         .single();
     if (error || !data) {
-        (0, response_1.sendError)(res, 'Order not found or update failed', 404);
+        (0, response_1.sendError)(res, 'Order status update failed', 500);
         return;
     }
     (0, response_1.sendSuccess)(res, data, 'Order status updated');

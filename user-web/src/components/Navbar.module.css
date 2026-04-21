@@ -23,6 +23,14 @@
   flex-shrink: 0;
 }
 .brandIcon { font-size: 26px; }
+.brandLogo {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  background: #fff;
+}
 .brandName { font-size: 18px; font-weight: 800; color: var(--text); }
 
 .links {
@@ -150,8 +158,9 @@
   }
 
   .inner {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 10px;
+    justify-content: space-between;
   }
 
   .brandName {
@@ -160,25 +169,12 @@
 
   .actions {
     gap: 8px;
-  }
-
-  .links {
-    order: 3;
-    width: 100%;
-    display: flex;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    scrollbar-width: none;
-  }
-
-  .links::-webkit-scrollbar {
+    /* Hide cart and user menu on mobile top nav */
     display: none;
   }
 
-  .link {
-    white-space: nowrap;
-    padding: 6px 10px;
-    font-size: 13px;
+  .links {
+    display: none;
   }
 
   .userName { display: none; }
