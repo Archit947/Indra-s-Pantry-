@@ -104,6 +104,40 @@
   font-weight: 800;
   color: var(--orange);
 }
+
+.qtyControls {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.qtyBtn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--green);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.qtyBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.qtyValue {
+  min-width: 28px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
 @media (max-width: 640px) {
   .card {
     flex-direction: row;
@@ -157,6 +191,12 @@
     position: absolute;
     bottom: -15px;
     right: 15px; /* relative to img wrap basically */
+  }
+
+  .qtyControls {
+    position: absolute;
+    bottom: -15px;
+    right: 15px;
   }
 }
 @media (max-width: 640px) {
@@ -234,6 +274,27 @@
     border-radius: 8px;
     text-transform: uppercase;
   }
+
+  .qtyControls {
+    position: absolute;
+    bottom: 2px;
+    right: 25px;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .qtyBtn {
+    width: 32px;
+    height: 30px;
+    background: #fff;
+  }
+
+  .qtyValue {
+    min-width: 30px;
+    font-size: 13px;
+    background: #fff;
+  }
+
   .catBadge {
     display: none;
   }
