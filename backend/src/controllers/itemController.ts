@@ -2,6 +2,28 @@ import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { sendSuccess, sendError } from '../utils/response';
 
+const parseBooleanField = (value: unknown): boolean | undefined => {
+  if (value === undefined) return undefined;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+  }
+  return undefined;
+};
+
+const parsePriceField = (value: unknown): number | null => {
+  const parsed = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return parsed;
+};
+
+const parseStockField = (value: unknown): number | null => {
+  const parsed = typeof value === 'number' ? value : Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) return null;
+  return parsed;
+};
+
 // GET /api/items  — supports ?category_id=&search=&all=true(admin)
 export const getItems = async (req: Request, res: Response): Promise<void> => {
   const { category_id, search, all } = req.query;
@@ -42,10 +64,23 @@ export const getItemById = async (req: Request, res: Response): Promise<void> =>
 
 // POST /api/items  [admin]  — image handled by upload middleware
 export const createItem = async (req: Request, res: Response): Promise<void> => {
-  const { category_id, name, description, price, image_url, is_available } = req.body;
+  const { category_id, name, description, price, image_url, is_available, stock } = req.body;
+  const parsedPrice = parsePriceField(price);
+  const parsedStock = parseStockField(stock);
+  const parsedAvailability = parseBooleanField(is_available);
 
-  if (!name?.trim() || price === undefined) {
-    sendError(res, 'Name and price are required', 400);
+  if (!name?.trim()) {
+    sendError(res, 'Name is required', 400);
+    return;
+  }
+
+  if (parsedPrice === null) {
+    sendError(res, 'Price must be a valid number 0 or greater', 400);
+    return;
+  }
+
+  if (parsedStock === null) {
+    sendError(res, 'Stock must be a whole number 0 or greater', 400);
     return;
   }
 
@@ -54,10 +89,11 @@ export const createItem = async (req: Request, res: Response): Promise<void> => 
     .insert({
       category_id: category_id || null,
       name: name.trim(),
-      description: description || null,
-      price: parseFloat(price),
+      description: description?.trim() || null,
+      price: parsedPrice,
       image_url: image_url || null,
-      is_available: is_available !== undefined ? Boolean(is_available) : true,
+      stock: parsedStock,
+      is_available: parsedAvailability ?? true,
     })
     .select('*, categories(id, name, description)')
     .single();
@@ -68,15 +104,44 @@ export const createItem = async (req: Request, res: Response): Promise<void> => 
 
 // PUT /api/items/:id  [admin]
 export const updateItem = async (req: Request, res: Response): Promise<void> => {
-  const { category_id, name, description, price, image_url, is_available } = req.body;
+  const { category_id, name, description, price, image_url, is_available, stock } = req.body;
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (category_id !== undefined) updates.category_id = category_id || null;
-  if (name !== undefined) updates.name = name.trim();
-  if (description !== undefined) updates.description = description;
-  if (price !== undefined) updates.price = parseFloat(price);
+  if (name !== undefined) {
+    const trimmedName = String(name).trim();
+    if (!trimmedName) {
+      sendError(res, 'Name cannot be empty', 400);
+      return;
+    }
+    updates.name = trimmedName;
+  }
+  if (description !== undefined) updates.description = String(description).trim() || null;
+  if (price !== undefined) {
+    const parsedPrice = parsePriceField(price);
+    if (parsedPrice === null) {
+      sendError(res, 'Price must be a valid number 0 or greater', 400);
+      return;
+    }
+    updates.price = parsedPrice;
+  }
   if (image_url !== undefined) updates.image_url = image_url;
-  if (is_available !== undefined) updates.is_available = Boolean(is_available);
+  if (stock !== undefined) {
+    const parsedStock = parseStockField(stock);
+    if (parsedStock === null) {
+      sendError(res, 'Stock must be a whole number 0 or greater', 400);
+      return;
+    }
+    updates.stock = parsedStock;
+  }
+  if (is_available !== undefined) {
+    const parsedAvailability = parseBooleanField(is_available);
+    if (parsedAvailability === undefined) {
+      sendError(res, 'is_available must be true or false', 400);
+      return;
+    }
+    updates.is_available = parsedAvailability;
+  }
 
   const { data, error } = await supabase
     .from('items')

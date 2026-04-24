@@ -9,11 +9,32 @@ import styles from './CheckoutPage.module.css';
 const CheckoutPage: React.FC = () => {
   const { cartItems, cartTotal, clearCart, loading } = useCart();
   const { user } = useAuth();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
 
-  const [notes, setNotes]   = useState('');
+  const [notes, setNotes] = useState('');
   const [placing, setPlacing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cash_at_pickup'>('upi');
+
+  const cartIssues = cartItems
+    .map((ci) => {
+      const item = ci.items;
+      if (!item) {
+        return 'An item in your cart is no longer available.';
+      }
+      if (!item.is_available) {
+        return `${item.name} is not available right now.`;
+      }
+      if (item.stock <= 0) {
+        return `${item.name} is out of stock.`;
+      }
+      if (ci.quantity > item.stock) {
+        return `Only ${item.stock} left for ${item.name}.`;
+      }
+      return null;
+    })
+    .filter((issue): issue is string => issue !== null);
+
+  const hasCartIssues = cartIssues.length > 0;
 
   useEffect(() => {
     if (!loading && cartItems.length === 0) {
@@ -30,6 +51,8 @@ const CheckoutPage: React.FC = () => {
   }
 
   const handlePlaceOrder = async () => {
+    if (hasCartIssues) return;
+
     if (paymentMethod === 'upi') {
       navigate('/checkout/upi', { state: { notes } });
       return;
@@ -40,7 +63,7 @@ const CheckoutPage: React.FC = () => {
       const res = await placeOrder({ payment_method: 'cash_at_pickup', notes });
       const order = res.data.data;
       await clearCart();
-      toast.success('Order placed successfully! 🎉');
+      toast.success('Order placed successfully');
       navigate(`/orders/${order.id}`);
     } catch (err: unknown) {
       const msg =
@@ -55,13 +78,12 @@ const CheckoutPage: React.FC = () => {
   return (
     <div className="page-section">
       <div className="page-wrap">
-        <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 28 }}>✅ Checkout</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 28 }}>Checkout</h1>
 
         <div className={styles.layout}>
-          {/* Left: review items */}
           <div>
             <div className={`card ${styles.section}`}>
-              <h2 className={styles.sectionTitle}>📋 Order Review</h2>
+              <h2 className={styles.sectionTitle}>Order Review</h2>
               {cartItems.map((ci) => (
                 <div key={ci.id} className={styles.lineItem}>
                   {ci.items?.image_url && (
@@ -69,28 +91,30 @@ const CheckoutPage: React.FC = () => {
                   )}
                   <div className={styles.lineInfo}>
                     <span className={styles.lineName}>{ci.items?.name}</span>
-                    <span className={styles.lineQty}>× {ci.quantity}</span>
+                    <span className={styles.lineQty}>x {ci.quantity}</span>
+                    {ci.items && (
+                      <span className={styles.lineQty}>Stock left: {ci.items.stock}</span>
+                    )}
                   </div>
-                  <span className={styles.lineAmt}>₹{(ci.items?.price ?? 0) * ci.quantity}</span>
+                  <span className={styles.lineAmt}>Rs {(ci.items?.price ?? 0) * ci.quantity}</span>
                 </div>
               ))}
             </div>
 
             <div className={`card ${styles.section}`} style={{ marginTop: 16 }}>
-              <h2 className={styles.sectionTitle}>📝 Special Instructions (optional)</h2>
+              <h2 className={styles.sectionTitle}>Special Instructions (optional)</h2>
               <textarea
                 className="form-control"
                 rows={3}
-                placeholder="Any special requests? e.g. 'Less spicy', 'No onions'…"
+                placeholder="Any special requests?"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Right: summary */}
           <div className={`card ${styles.summary}`}>
-            <h2 className={styles.sectionTitle}>🧾 Bill Summary</h2>
+            <h2 className={styles.sectionTitle}>Bill Summary</h2>
 
             <div className={styles.infoRow}>
               <span>Customer</span>
@@ -105,8 +129,8 @@ const CheckoutPage: React.FC = () => {
 
             {cartItems.map((ci) => (
               <div key={ci.id} className={styles.summaryItem}>
-                <span className={styles.summaryItemName}>{ci.items?.name} × {ci.quantity}</span>
-                <span>₹{(ci.items?.price ?? 0) * ci.quantity}</span>
+                <span className={styles.summaryItemName}>{ci.items?.name} x {ci.quantity}</span>
+                <span>Rs {(ci.items?.price ?? 0) * ci.quantity}</span>
               </div>
             ))}
 
@@ -114,7 +138,7 @@ const CheckoutPage: React.FC = () => {
 
             <div className={styles.totalRow}>
               <span>Total Amount</span>
-              <span className={styles.totalAmt}>₹{cartTotal}</span>
+              <span className={styles.totalAmt}>Rs {cartTotal}</span>
             </div>
 
             <div className={styles.paymentSection}>
@@ -129,7 +153,7 @@ const CheckoutPage: React.FC = () => {
                 />
                 <div>
                   <div className={styles.payTitle}>UPI (Recommended)</div>
-                  <div className={styles.payDesc}>Go to next page and scan big QR</div>
+                  <div className={styles.payDesc}>Go to the next page and scan the QR code</div>
                 </div>
               </label>
 
@@ -147,13 +171,19 @@ const CheckoutPage: React.FC = () => {
               </label>
             </div>
 
+            {hasCartIssues && (
+              <div style={{ color: '#b91c1c', fontSize: 13, lineHeight: 1.5 }}>
+                {cartIssues.join(' ')}
+              </div>
+            )}
+
             <button
               className="btn btn-primary btn-full btn-lg"
               style={{ marginTop: 20, borderRadius: 12 }}
               onClick={handlePlaceOrder}
-              disabled={placing}
+              disabled={placing || hasCartIssues}
             >
-              {placing ? 'Placing Order…' : paymentMethod === 'upi' ? `Continue to UPI — ₹${cartTotal}` : `Place Order — ₹${cartTotal}`}
+              {placing ? 'Placing Order...' : paymentMethod === 'upi' ? `Continue to UPI - Rs ${cartTotal}` : `Place Order - Rs ${cartTotal}`}
             </button>
 
             <p className={styles.disclaimer}>

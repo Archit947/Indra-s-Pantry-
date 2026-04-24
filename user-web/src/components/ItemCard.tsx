@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Item } from '../types';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import toast from 'react-hot-toast';
 import styles from './ItemCard.module.css';
 
 interface Props {
@@ -20,6 +20,8 @@ const ItemCard: React.FC<Props> = ({ item, onCategoryClick, categoryDescription 
 
   const cartItem = cartItems.find((ci) => ci.item_id === item.id);
   const quantity = cartItem?.quantity ?? 0;
+  const canOrder = item.is_available && item.stock > 0;
+  const maxReached = canOrder && quantity >= item.stock;
 
   const ensureAuthenticated = () => {
     if (!isAuthenticated) {
@@ -33,7 +35,7 @@ const ItemCard: React.FC<Props> = ({ item, onCategoryClick, categoryDescription 
     e.preventDefault();
     e.stopPropagation();
 
-    if (!ensureAuthenticated() || !item.is_available || updating) return;
+    if (!ensureAuthenticated() || !canOrder || updating || maxReached) return;
 
     setUpdating(true);
     try {
@@ -86,10 +88,10 @@ const ItemCard: React.FC<Props> = ({ item, onCategoryClick, categoryDescription 
         {item.image_url ? (
           <img src={item.image_url} alt={item.name} className={styles.img} loading="lazy" />
         ) : (
-          <div className={styles.imgPlaceholder}>🍛</div>
+          <div className={styles.imgPlaceholder}>Item</div>
         )}
 
-        {!item.is_available && <div className={styles.outBadge}>Out of Stock</div>}
+        {!canOrder && <div className={styles.outBadge}>Out of Stock</div>}
 
         {item.categories && (
           <button type="button" className={styles.catBadge} onClick={handleCategoryClick}>
@@ -101,15 +103,16 @@ const ItemCard: React.FC<Props> = ({ item, onCategoryClick, categoryDescription 
       <div className={styles.body}>
         <h3 className={styles.name}>{item.name}</h3>
         {cardDescription && <p className={styles.desc}>{cardDescription}</p>}
+        {canOrder && item.stock <= 5 && <p className={styles.stockHint}>Only {item.stock} left</p>}
 
         <div className={styles.footer}>
-          <span className={styles.price}>₹{item.price}</span>
+          <span className={styles.price}>Rs {item.price}</span>
 
           {quantity === 0 ? (
             <button
               className={`btn btn-primary btn-sm ${styles.addBtn}`}
               onClick={handleIncrement}
-              disabled={!item.is_available || updating}
+              disabled={!canOrder || updating}
             >
               {updating ? '...' : '+ Add'}
             </button>
@@ -129,7 +132,7 @@ const ItemCard: React.FC<Props> = ({ item, onCategoryClick, categoryDescription 
                 type="button"
                 className={styles.qtyBtn}
                 onClick={handleIncrement}
-                disabled={updating || !item.is_available}
+                disabled={updating || !canOrder || maxReached}
                 aria-label={`Increase ${item.name} quantity`}
               >
                 +

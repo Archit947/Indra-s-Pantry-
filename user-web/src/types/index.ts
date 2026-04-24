@@ -23,6 +23,7 @@ export interface Item {
   description?: string;
   price: number;
   image_url?: string;
+  stock: number;
   is_available: boolean;
   categories?: { id: string; name: string; description?: string };
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { fetchItems, fetchCategories, createItem, updateItem, deleteItem } from '../api/services';
 import { Item, Category } from '../types';
@@ -17,7 +17,12 @@ const ItemManager: React.FC = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [form, setForm] = useState({
-    name: '', description: '', price: '', category_id: '', is_available: true,
+    name: '',
+    description: '',
+    price: '',
+    stock: '0',
+    category_id: '',
+    is_available: true,
   });
 
   const load = async () => {
@@ -39,7 +44,14 @@ const ItemManager: React.FC = () => {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: '', description: '', price: '', category_id: '', is_available: true });
+    setForm({
+      name: '',
+      description: '',
+      price: '',
+      stock: '0',
+      category_id: '',
+      is_available: true,
+    });
     setImagePreview(null);
     if (fileRef.current) fileRef.current.value = '';
     setShowModal(true);
@@ -51,6 +63,7 @@ const ItemManager: React.FC = () => {
       name: item.name,
       description: item.description ?? '',
       price: String(item.price),
+      stock: String(item.stock),
       category_id: item.category_id ?? '',
       is_available: item.is_available,
     });
@@ -62,8 +75,7 @@ const ItemManager: React.FC = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setImagePreview(url);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -74,6 +86,7 @@ const ItemManager: React.FC = () => {
     fd.append('name', form.name);
     fd.append('description', form.description);
     fd.append('price', form.price);
+    fd.append('stock', form.stock);
     fd.append('category_id', form.category_id);
     fd.append('is_available', String(form.is_available));
     if (fileRef.current?.files?.[0]) {
@@ -114,7 +127,6 @@ const ItemManager: React.FC = () => {
 
   return (
     <div>
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <h1 className="page-title">Menu Items</h1>
@@ -123,11 +135,10 @@ const ItemManager: React.FC = () => {
         <button className="btn btn-primary" onClick={openCreate}>+ Add Item</button>
       </div>
 
-      {/* Filters */}
       <div className={styles.filters}>
         <input
           className={styles.searchInput}
-          placeholder="🔍  Search items…"
+          placeholder="Search items..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -141,54 +152,64 @@ const ItemManager: React.FC = () => {
         </select>
       </div>
 
-      {/* Grid */}
       {items.length === 0 ? (
         <div className="empty-state card" style={{ marginTop: 12 }}>
           <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-              d="M19 11H5m7-7v14" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m7-7v14" />
           </svg>
           No items found
         </div>
       ) : (
         <div className={styles.grid}>
-          {items.map((item) => (
-            <div key={item.id} className={`card ${styles.itemCard}`}>
-              {item.image_url ? (
-                <img src={item.image_url} alt={item.name} className={styles.itemImg} />
-              ) : (
-                <div className={styles.itemImgPlaceholder}>🍛</div>
-              )}
-              <div className={styles.itemBody}>
-                <div className={styles.itemName}>{item.name}</div>
-                {item.categories && (
-                  <div className={styles.itemCategory}>{item.categories.name}</div>
+          {items.map((item) => {
+            const userCanOrder = item.is_available && item.stock > 0;
+            const statusLabel = item.is_available
+              ? item.stock > 0 ? 'Available' : 'Out of Stock'
+              : 'Hidden';
+
+            return (
+              <div key={item.id} className={`card ${styles.itemCard}`}>
+                {item.image_url ? (
+                  <img src={item.image_url} alt={item.name} className={styles.itemImg} />
+                ) : (
+                  <div className={styles.itemImgPlaceholder}>Item</div>
                 )}
-                <div className={styles.itemPrice}>₹{item.price}</div>
-                <span className={`badge ${item.is_available ? 'badge-available' : 'badge-outofstock'}`}>
-                  {item.is_available ? 'Available' : 'Out of Stock'}
-                </span>
-                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                  <button className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={() => openEdit(item)}>Edit</button>
-                  <button className="btn btn-danger btn-sm" style={{ flex: 1 }} onClick={() => handleDelete(item.id)}>Delete</button>
+                <div className={styles.itemBody}>
+                  <div className={styles.itemName}>{item.name}</div>
+                  {item.categories && (
+                    <div className={styles.itemCategory}>{item.categories.name}</div>
+                  )}
+                  <div className={styles.itemPrice}>Rs {item.price}</div>
+                  <div className={styles.metaRow}>
+                    <span className={`badge ${userCanOrder ? 'badge-available' : 'badge-outofstock'}`}>
+                      {statusLabel}
+                    </span>
+                    <span className={styles.stockPill}>Stock: {item.stock}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                    <button className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={() => openEdit(item)}>
+                      Edit
+                    </button>
+                    <button className="btn btn-danger btn-sm" style={{ flex: 1 }} onClick={() => handleDelete(item.id)}>
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editing ? 'Edit Item' : 'Add Item'}</h2>
-              <button className="btn btn-outline btn-sm" onClick={() => setShowModal(false)}>✕</button>
+              <button className="btn btn-outline btn-sm" onClick={() => setShowModal(false)}>X</button>
             </div>
             <form onSubmit={handleSave}>
               <div className="modal-body">
-                {/* Image preview */}
                 {imagePreview && (
                   <div style={{ textAlign: 'center', marginBottom: 16 }}>
                     <img
@@ -211,7 +232,7 @@ const ItemManager: React.FC = () => {
 
                 <div className="grid-2">
                   <div className="form-group">
-                    <label>Price (₹) *</label>
+                    <label>Price (Rs) *</label>
                     <input
                       type="number"
                       min="0"
@@ -222,17 +243,29 @@ const ItemManager: React.FC = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Category</label>
-                    <select
-                      value={form.category_id}
-                      onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-                    >
-                      <option value="">No Category</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
+                    <label>Stock *</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={form.stock}
+                      onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                      required
+                    />
                   </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Category</label>
+                  <select
+                    value={form.category_id}
+                    onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+                  >
+                    <option value="">No Category</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="form-group">
@@ -240,18 +273,18 @@ const ItemManager: React.FC = () => {
                   <textarea
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    placeholder="Describe the item…"
+                    placeholder="Describe the item..."
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>Availability</label>
+                  <label>Listing Status</label>
                   <select
                     value={form.is_available ? 'true' : 'false'}
                     onChange={(e) => setForm({ ...form, is_available: e.target.value === 'true' })}
                   >
-                    <option value="true">Available</option>
-                    <option value="false">Out of Stock</option>
+                    <option value="true">Listed for users</option>
+                    <option value="false">Hidden from users</option>
                   </select>
                 </div>
 
@@ -268,7 +301,7 @@ const ItemManager: React.FC = () => {
               <div className="modal-footer">
                 <button type="button" className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? 'Saving…' : editing ? 'Update' : 'Create'}
+                  {saving ? 'Saving...' : editing ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>

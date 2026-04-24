@@ -26,6 +26,17 @@ const UpiPaymentPage: React.FC = () => {
   const [fallbackMerchantName, setFallbackMerchantName] = useState(DEFAULT_MERCHANT_NAME);
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
+  const cartIssues = cartItems
+    .map((ci) => {
+      const item = ci.items;
+      if (!item) return 'An item in your cart is no longer available.';
+      if (!item.is_available) return `${item.name} is not available right now.`;
+      if (item.stock <= 0) return `${item.name} is out of stock.`;
+      if (ci.quantity > item.stock) return `Only ${item.stock} left for ${item.name}.`;
+      return null;
+    })
+    .filter((issue): issue is string => issue !== null);
+  const hasCartIssues = cartIssues.length > 0;
 
   const configuredUpiId = (upiQr?.upi_id || '').trim();
   const resolvedUpiId = isValidUpiVpa(configuredUpiId) ? configuredUpiId : DEFAULT_UPI_ID;
@@ -60,6 +71,7 @@ const UpiPaymentPage: React.FC = () => {
   }, [cartLoading, cartItems.length, navigate]);
 
   const handlePlaceOrder = async () => {
+    if (hasCartIssues) return;
     setPlacing(true);
     try {
       const res = await placeOrder({ payment_method: 'upi', notes: state?.notes });
@@ -137,11 +149,17 @@ const UpiPaymentPage: React.FC = () => {
             <div className={styles.itemCount}>{cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</div>
             <div className={styles.inlineHint}>Tap GPay/PhonePe and pay ₹{upiAmount}</div>
 
+            {hasCartIssues && (
+              <div className={styles.inlineHint} style={{ color: '#b91c1c' }}>
+                {cartIssues.join(' ')}
+              </div>
+            )}
+
             <button
               className="btn btn-primary btn-full btn-lg"
               style={{ marginTop: 18, borderRadius: 12 }}
               onClick={handlePlaceOrder}
-              disabled={placing || !upiQr?.qr_image_url}
+              disabled={placing || !upiQr?.qr_image_url || hasCartIssues}
             >
               {placing ? 'Placing Order…' : `I Have Paid, Place Order — ₹${cartTotal}`}
             </button>

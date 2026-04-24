@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS items (
   description  TEXT,
   price        NUMERIC(10,2)  NOT NULL CHECK (price >= 0),
   image_url    TEXT,
+  stock        INTEGER        NOT NULL DEFAULT 0 CHECK (stock >= 0),
   is_available BOOLEAN        DEFAULT true,
   created_at   TIMESTAMPTZ    DEFAULT NOW(),
   updated_at   TIMESTAMPTZ    DEFAULT NOW()
@@ -68,6 +69,7 @@ CREATE TABLE IF NOT EXISTS orders (
 -- ─── Indexes ──────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_items_category_id   ON items(category_id);
 CREATE INDEX IF NOT EXISTS idx_items_is_available  ON items(is_available);
+CREATE INDEX IF NOT EXISTS idx_items_stock         ON items(stock);
 CREATE INDEX IF NOT EXISTS idx_cart_user_id        ON cart_items(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user_id      ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status       ON orders(status);

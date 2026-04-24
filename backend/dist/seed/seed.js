@@ -67,9 +67,14 @@ async function seed() {
         { category_id: catMap['Desserts'], name: 'Kheer', description: 'Creamy rice pudding with saffron & cardamom', price: 50 },
         { category_id: catMap['Desserts'], name: 'Ice Cream', description: 'Vanilla or Chocolate — 2 scoops', price: 60 },
     ];
+    const stockLevels = [20, 25, 18, 15, 14, 12, 16, 16, 30, 28, 20, 15, 40, 35, 22, 18, 20, 14, 18];
+    const itemsWithStock = items.map((item, index) => ({
+        ...item,
+        stock: stockLevels[index] ?? 10,
+    }));
     const { error: ie } = await supabase_1.supabase
         .from('items')
-        .upsert(items, { onConflict: 'name' });
+        .upsert(itemsWithStock, { onConflict: 'name' });
     if (!ie)
         console.log(`✅ Items           → ${items.length} items seeded`);
     else

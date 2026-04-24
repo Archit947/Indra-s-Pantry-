@@ -71,6 +71,14 @@
 .avail   { background: var(--green-light); color: #15803d; }
 .unavail { background: var(--red-light);   color: #b91c1c; }
 
+.stockInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
 .cartSection {
   display: flex;
   align-items: center;
@@ -104,6 +112,12 @@
   font-size: 16px;
   font-weight: 700;
   padding: 0 8px;
+}
+
+.stockMessage {
+  font-size: 14px;
+  font-weight: 600;
+  color: #b91c1c;
 }
 
 .backLink {
