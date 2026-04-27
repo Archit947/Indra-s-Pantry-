@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { placeOrder } from '../api/services';
+import { placeOrder, getPublicShopStatus } from '../api/services';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import styles from './CheckoutPage.module.css';
@@ -14,6 +14,9 @@ const CheckoutPage: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [placing, setPlacing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cash_at_pickup'>('upi');
+  const [shopOpen, setShopOpen] = useState(true);
+  const [tentativeReopenDate, setTentativeReopenDate] = useState<string | null>(null);
+  const [closeMessage, setCloseMessage] = useState<string | null>(null);
 
   const cartIssues = cartItems
     .map((ci) => {
@@ -41,6 +44,17 @@ const CheckoutPage: React.FC = () => {
       navigate('/cart');
     }
   }, [loading, cartItems.length, navigate]);
+
+  useEffect(() => {
+    getPublicShopStatus()
+      .then((res) => {
+        const d = res.data.data;
+        setShopOpen(d.is_open);
+        setTentativeReopenDate(d.tentative_reopen_date ?? null);
+        setCloseMessage(d.close_message ?? null);
+      })
+      .catch(() => {/* keep shopOpen=true on error */});
+  }, []);
 
   if (loading) {
     return <div className="loading-center"><div className="spinner" /></div>;
@@ -177,11 +191,40 @@ const CheckoutPage: React.FC = () => {
               </div>
             )}
 
+            {!shopOpen && (
+              <div
+                style={{
+                  background: '#fee2e2',
+                  border: '1px solid #fca5a5',
+                  borderRadius: 10,
+                  padding: '12px 16px',
+                  marginTop: 16,
+                  color: '#b91c1c',
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                }}
+              >
+                <strong>🔴 Shop is currently closed.</strong>
+                {closeMessage && <div style={{ marginTop: 4 }}>{closeMessage}</div>}
+                {tentativeReopenDate && (
+                  <div style={{ marginTop: 4 }}>
+                    Expected to reopen:{' '}
+                    <strong>
+                      {new Date(tentativeReopenDate).toLocaleString('en-IN', {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })}
+                    </strong>
+                  </div>
+                )}
+              </div>
+            )}
+
             <button
               className="btn btn-primary btn-full btn-lg"
               style={{ marginTop: 20, borderRadius: 12 }}
               onClick={handlePlaceOrder}
-              disabled={placing || hasCartIssues}
+              disabled={placing || hasCartIssues || !shopOpen}
             >
               {placing ? 'Placing Order...' : paymentMethod === 'upi' ? `Continue to UPI - Rs ${cartTotal}` : `Place Order - Rs ${cartTotal}`}
             </button>

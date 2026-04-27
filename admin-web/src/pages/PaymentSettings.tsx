@@ -3,8 +3,10 @@ import toast from 'react-hot-toast';
 import {
   changeAdminPassword,
   fetchPublicSiteBranding,
+  fetchShopStatus,
   fetchUpiQrSettings,
   saveSiteBranding,
+  saveShopStatus,
   saveUpiQrSettings,
 } from '../api/services';
 
@@ -26,6 +28,12 @@ const PaymentSettings: React.FC = () => {
   const [savingBranding, setSavingBranding] = useState(false);
   const [savingPayment, setSavingPayment] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+
+  // Shop status
+  const [shopOpen, setShopOpen] = useState(true);
+  const [tentativeReopenDate, setTentativeReopenDate] = useState('');
+  const [closeMessage, setCloseMessage] = useState('');
+  const [savingShopStatus, setSavingShopStatus] = useState(false);
 
   const handleQrFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -66,9 +74,10 @@ const PaymentSettings: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const [upiRes, brandingRes] = await Promise.all([
+        const [upiRes, brandingRes, shopRes] = await Promise.all([
           fetchUpiQrSettings(),
           fetchPublicSiteBranding(),
+          fetchShopStatus(),
         ]);
 
         const upiData = upiRes.data.data;
@@ -82,6 +91,11 @@ const PaymentSettings: React.FC = () => {
         setSiteName(brandingData.site_name || "Indra's Pantry");
         setLogoUrl(brandingData.logo_url || '');
         setLogoPreview(brandingData.logo_url || '');
+
+        const shopData = shopRes.data.data;
+        setShopOpen(shopData.is_open);
+        setTentativeReopenDate(shopData.tentative_reopen_date || '');
+        setCloseMessage(shopData.close_message || '');
       } catch {
         toast.error('Could not load settings');
       } finally {
@@ -157,8 +171,27 @@ const PaymentSettings: React.FC = () => {
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveShopStatus = async () => {
+    setSavingShopStatus(true);
+    try {
+      const res = await saveShopStatus({
+        is_open: shopOpen,
+        tentative_reopen_date: shopOpen ? null : (tentativeReopenDate || null),
+        close_message: shopOpen ? null : (closeMessage || null),
+      });
+      const updated = res.data.data;
+      setShopOpen(updated.is_open);
+      setTentativeReopenDate(updated.tentative_reopen_date || '');
+      setCloseMessage(updated.close_message || '');
+      toast.success(updated.is_open ? 'Shop is now open' : 'Shop closed successfully');
+    } catch {
+      toast.error('Failed to update shop status');
+    } finally {
+      setSavingShopStatus(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {    e.preventDefault();
 
     if (newPassword.length < 6) {
       toast.error('New password must be at least 6 characters');
@@ -206,6 +239,104 @@ const PaymentSettings: React.FC = () => {
       </div>
 
       <div style={{ display: 'grid', gap: 20, maxWidth: 860 }}>
+        {/* ── Shop Status ─────────────────────────────────────── */}
+        <div className="card">
+          <h2 style={{ fontSize: 18, marginBottom: 6 }}>Shop Status</h2>
+          <p style={{ color: '#64748b', fontSize: 14, marginBottom: 18 }}>
+            Control whether customers can place orders. When closed, you can set a tentative reopen date.
+          </p>
+
+          {/* Toggle row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+            <button
+              type="button"
+              onClick={() => setShopOpen(true)}
+              style={{
+                padding: '10px 24px',
+                borderRadius: 8,
+                border: '2px solid',
+                borderColor: shopOpen ? '#16a34a' : '#e2e8f0',
+                background: shopOpen ? '#dcfce7' : '#f8fafc',
+                color: shopOpen ? '#15803d' : '#64748b',
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: 15,
+                transition: 'all 0.15s',
+              }}
+            >
+              ✅ Open
+            </button>
+            <button
+              type="button"
+              onClick={() => setShopOpen(false)}
+              style={{
+                padding: '10px 24px',
+                borderRadius: 8,
+                border: '2px solid',
+                borderColor: !shopOpen ? '#dc2626' : '#e2e8f0',
+                background: !shopOpen ? '#fee2e2' : '#f8fafc',
+                color: !shopOpen ? '#b91c1c' : '#64748b',
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: 15,
+                transition: 'all 0.15s',
+              }}
+            >
+              🔴 Closed
+            </button>
+            <span
+              style={{
+                marginLeft: 'auto',
+                padding: '4px 14px',
+                borderRadius: 20,
+                fontSize: 13,
+                fontWeight: 600,
+                background: shopOpen ? '#dcfce7' : '#fee2e2',
+                color: shopOpen ? '#15803d' : '#b91c1c',
+              }}
+            >
+              Currently: {shopOpen ? 'OPEN' : 'CLOSED'}
+            </span>
+          </div>
+
+          {/* Extra fields shown only when closing */}
+          {!shopOpen && (
+            <div style={{ display: 'grid', gap: 14, marginBottom: 20 }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Tentative Reopen Date &amp; Time</label>
+                <input
+                  type="datetime-local"
+                  value={tentativeReopenDate}
+                  onChange={(e) => setTentativeReopenDate(e.target.value)}
+                  style={{ maxWidth: 300 }}
+                />
+                <small style={{ color: '#64748b', display: 'block', marginTop: 4 }}>
+                  This date will be shown to customers on the site.
+                </small>
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Message to customers (optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Closed for maintenance. See you soon!"
+                  value={closeMessage}
+                  onChange={(e) => setCloseMessage(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          <button
+            className={`btn ${shopOpen ? 'btn-primary' : 'btn-danger'}`}
+            type="button"
+            onClick={handleSaveShopStatus}
+            disabled={savingShopStatus}
+            style={!shopOpen ? { background: '#dc2626', color: '#fff', border: 'none' } : {}}
+          >
+            {savingShopStatus ? 'Saving...' : shopOpen ? 'Save (Keep Open)' : 'Close the Shop'}
+          </button>
+        </div>
+
         <div className="card">
           <h2 style={{ fontSize: 18, marginBottom: 14 }}>Website Branding</h2>
           <form onSubmit={handleSaveBranding}>

@@ -5,8 +5,10 @@ import {
   changeAdminPassword,
   getPublicSiteBranding,
   getPublicUpiQrSettings,
+  getPublicShopStatus,
   upsertSiteBranding,
   upsertUpiQrSettings,
+  upsertShopStatus,
 } from '../controllers/settingsController';
 import { createSupabaseUploadMiddleware, upload } from '../middleware/upload';
 
@@ -18,8 +20,10 @@ const uploadBrandLogo = createSupabaseUploadMiddleware({
 
 router.get('/public/upi-qr', getPublicUpiQrSettings);
 router.get('/public/branding', getPublicSiteBranding);
+router.get('/public/shop-status', getPublicShopStatus);
 router.put('/upi-qr', authenticate, requireAdmin, upsertUpiQrSettings);
 router.put('/branding', authenticate, requireAdmin, upload.single('logo'), uploadBrandLogo, upsertSiteBranding);
 router.put('/change-password', authenticate, requireAdmin, changeAdminPassword);
+router.put('/shop-status', authenticate, requireAdmin, upsertShopStatus);
 
 export default router;

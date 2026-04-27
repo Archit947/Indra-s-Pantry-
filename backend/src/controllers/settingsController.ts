@@ -22,7 +22,14 @@ interface ChangePasswordBody {
 
 const UPI_QR_SETTING_KEY = 'upi_qr';
 const SITE_BRANDING_SETTING_KEY = 'site_branding';
+const SHOP_STATUS_SETTING_KEY = 'shop_status';
 const DEFAULT_SITE_NAME = "Indra's Pantry";
+
+interface ShopStatusSettings {
+  is_open: boolean;
+  tentative_reopen_date?: string | null;
+  close_message?: string | null;
+}
 
 const normalizeBrandingSettings = (value: unknown): SiteBrandingSettings => {
   const raw = (value && typeof value === 'object' ? value : {}) as Partial<SiteBrandingSettings>;
@@ -224,4 +231,58 @@ export const changeAdminPassword = async (req: Request, res: Response): Promise<
   }
 
   sendSuccess(res, null, 'Password updated successfully');
+};
+
+// GET /api/settings/public/shop-status
+export const getPublicShopStatus = async (_req: Request, res: Response): Promise<void> => {
+  const { data, error } = await supabase
+    .from('app_settings')
+    .select('setting_value')
+    .eq('setting_key', SHOP_STATUS_SETTING_KEY)
+    .maybeSingle();
+
+  if (error) {
+    sendError(res, 'Failed to fetch shop status', 500);
+    return;
+  }
+
+  const defaults: ShopStatusSettings = { is_open: true, tentative_reopen_date: null, close_message: null };
+  const value = (data?.setting_value ?? defaults) as ShopStatusSettings;
+  sendSuccess(res, value);
+};
+
+// PUT /api/settings/shop-status [admin]
+export const upsertShopStatus = async (req: Request, res: Response): Promise<void> => {
+  const { is_open, tentative_reopen_date, close_message } = req.body as Partial<ShopStatusSettings>;
+
+  if (typeof is_open !== 'boolean') {
+    sendError(res, 'is_open (boolean) is required', 400);
+    return;
+  }
+
+  const payload: ShopStatusSettings = {
+    is_open,
+    tentative_reopen_date: is_open ? null : (tentative_reopen_date?.trim() || null),
+    close_message: is_open ? null : (close_message?.trim() || null),
+  };
+
+  const { data, error } = await supabase
+    .from('app_settings')
+    .upsert(
+      {
+        setting_key: SHOP_STATUS_SETTING_KEY,
+        setting_value: payload,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'setting_key' }
+    )
+    .select('setting_value')
+    .single();
+
+  if (error) {
+    sendError(res, 'Failed to save shop status', 500);
+    return;
+  }
+
+  sendSuccess(res, data.setting_value, `Shop is now ${is_open ? 'open' : 'closed'}`);
 };

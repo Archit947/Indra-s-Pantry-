@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchItems, fetchCategories } from '../api/services';
+import { fetchItems, fetchCategories, getPublicShopStatus } from '../api/services';
 import { Item, Category } from '../types';
 import ItemCard from '../components/ItemCard';
 import styles from './HomePage.module.css';
@@ -9,12 +9,19 @@ const HomePage: React.FC = () => {
   const [items, setItems]           = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading]       = useState(true);
+  const [shopOpen, setShopOpen]     = useState(true);
+  const [tentativeReopenDate, setTentativeReopenDate] = useState<string | null>(null);
+  const [closeMessage, setCloseMessage]               = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([fetchItems(), fetchCategories()])
-      .then(([itemsRes, catsRes]) => {
-        setItems(itemsRes.data.data.slice(0, 8)); // show first 8 on home
+    Promise.all([fetchItems(), fetchCategories(), getPublicShopStatus()])
+      .then(([itemsRes, catsRes, shopRes]) => {
+        setItems(itemsRes.data.data.slice(0, 8));
         setCategories(catsRes.data.data);
+        const s = shopRes.data.data;
+        setShopOpen(s.is_open);
+        setTentativeReopenDate(s.tentative_reopen_date ?? null);
+        setCloseMessage(s.close_message ?? null);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -22,6 +29,35 @@ const HomePage: React.FC = () => {
 
   return (
     <div>
+      {/* ─── Shop Closed Banner ──────────────────────────────── */}
+      {!shopOpen && (
+        <div
+          style={{
+            background: '#fee2e2',
+            borderBottom: '2px solid #fca5a5',
+            padding: '14px 20px',
+            textAlign: 'center',
+            color: '#b91c1c',
+            fontWeight: 600,
+            fontSize: 15,
+          }}
+        >
+          🔴 The shop is currently closed and not accepting orders.
+          {closeMessage && <span style={{ fontWeight: 400 }}> {closeMessage}</span>}
+          {tentativeReopenDate && (
+            <span>
+              {' '}Expected to reopen:{' '}
+              <strong>
+                {new Date(tentativeReopenDate).toLocaleString('en-IN', {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                })}
+              </strong>
+            </span>
+          )}
+        </div>
+      )}
+
       {/* ─── Hero ──────────────────────────────────────────────── */}
       <section className={styles.hero}>
         <div className={`page-wrap ${styles.heroInner}`}>

@@ -82,3 +82,9 @@ export const changeAdminPassword = (body: {
   new_password: string;
   confirm_password: string;
 }) => api.put('/settings/change-password', body);
+
+export const fetchShopStatus = () =>
+  api.get<{ data: { is_open: boolean; tentative_reopen_date?: string | null; close_message?: string | null } }>('/settings/public/shop-status');
+
+export const saveShopStatus = (body: { is_open: boolean; tentative_reopen_date?: string | null; close_message?: string | null }) =>
+  api.put<{ data: { is_open: boolean; tentative_reopen_date?: string | null; close_message?: string | null } }>('/settings/shop-status', body);

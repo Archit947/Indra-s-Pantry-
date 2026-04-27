@@ -58,3 +58,6 @@ export const getPublicUpiQrSettings = () =>
 
 export const getPublicSiteBranding = () =>
   api.get<{ data: SiteBrandingSettings }>('/settings/public/branding');
+
+export const getPublicShopStatus = () =>
+  api.get<{ data: { is_open: boolean; tentative_reopen_date?: string | null; close_message?: string | null } }>('/settings/public/shop-status');
